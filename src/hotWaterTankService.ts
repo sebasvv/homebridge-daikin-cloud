@@ -1,18 +1,11 @@
-import {CharacteristicProps, CharacteristicValue, PartialAllowingNull, PlatformAccessory, Service} from 'homebridge';
-import {DaikinCloudAccessoryContext, DaikinCloudPlatform} from './platform';
-import {DaikinCloudRepo} from './repository/daikinCloudRepo';
-import {DaikinPowerfulModes} from './climateControlService';
+import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
+import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from './platform';
+import { BaseService, DaikinOnOffModes, DaikinOperationModes, DaikinPowerfulModes } from './baseService';
 
-export class HotWaterTankService {
-    readonly platform: DaikinCloudPlatform;
-    readonly accessory: PlatformAccessory<DaikinCloudAccessoryContext>;
-    private readonly managementPointId: string;
-
+export class HotWaterTankService extends BaseService {
     private extraServices = {
         POWERFUL_MODE: 'Powerful mode',
     };
-
-    private readonly name: string;
 
     private readonly hotWaterTankService: Service;
     private readonly switchServicePowerfulMode?: Service;
@@ -22,10 +15,7 @@ export class HotWaterTankService {
         accessory: PlatformAccessory<DaikinCloudAccessoryContext>,
         managementPointId: string,
     ) {
-        this.platform = platform;
-        this.accessory = accessory;
-        this.managementPointId = managementPointId;
-        this.name = 'Hot water tank';
+        super(platform, accessory, managementPointId);
 
         this.switchServicePowerfulMode = this.accessory.getService(this.extraServices.POWERFUL_MODE);
 
@@ -43,18 +33,22 @@ export class HotWaterTankService {
         this.hotWaterTankService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
             .onGet(this.handleHotWaterTankCurrentTemperatureGet.bind(this));
 
-        const temperatureControl = accessory.context.device.getData(this.managementPointId, 'temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature');
+        const temperatureControl = this.getData('temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature');
         const targetTemperature = this.hotWaterTankService.getCharacteristic(this.platform.Characteristic.TargetTemperature);
-        targetTemperature.setProps({
-            minStep: temperatureControl.stepValue,
-            minValue: temperatureControl.minValue,
-            maxValue: temperatureControl.maxValue,
-        })
-            .onGet(this.handleHotWaterTankHeatingTargetTemperatureGet.bind(this))
-            .onSet(this.handleHotWaterTankHeatingTargetTemperatureSet.bind(this));
+        if (temperatureControl) {
+            targetTemperature
+                .setProps({
+                    minStep: temperatureControl.stepValue ?? 1,
+                    minValue: temperatureControl.minValue ?? 10,
+                    maxValue: temperatureControl.maxValue ?? 60,
+                })
+                .updateValue((temperatureControl.value as CharacteristicValue) ?? (temperatureControl.minValue ?? 45))
+                .onGet(this.handleHotWaterTankHeatingTargetTemperatureGet.bind(this))
+                .onSet(this.handleHotWaterTankHeatingTargetTemperatureSet.bind(this));
+        }
 
         // remove the set handler if the temperature is not settable
-        if (temperatureControl.settable === false) {
+        if (temperatureControl && temperatureControl.settable === false) {
             targetTemperature.removeOnSet();
         }
 
@@ -87,7 +81,7 @@ export class HotWaterTankService {
     }
 
     async handleHotWaterTankCurrentHeatingCoolingStateGet(): Promise<CharacteristicValue> {
-        const state = this.accessory.context.device.getData(this.managementPointId, 'onOffMode', undefined).value;
+        const state = this.safeGetValue('onOffMode', undefined);
         this.platform.log.debug(`[${this.name}] GET ActiveState, state: ${state}, last update: ${this.accessory.context.device.getLastUpdated()}`);
         const val = state === DaikinOnOffModes.ON ? this.platform.Characteristic.CurrentHeatingCoolingState.HEAT : this.platform.Characteristic.CurrentHeatingCoolingState.OFF;
         this.platform.log.debug(`[${this.name}] GET ActiveState going to return ${val}`);
@@ -95,13 +89,13 @@ export class HotWaterTankService {
     }
 
     async handleHotWaterTankCurrentTemperatureGet(): Promise<CharacteristicValue> {
-        const temperature = this.accessory.context.device.getData(this.managementPointId, 'sensoryData', '/tankTemperature').value;
+        const temperature = this.safeGetValue<number>('sensoryData', '/tankTemperature');
         this.platform.log.debug(`[${this.name}] GET CurrentTemperature for hot water tank, temperature: ${temperature}`);
         return temperature;
     }
 
     async handleHotWaterTankHeatingTargetTemperatureGet(): Promise<CharacteristicValue> {
-        const temperature = this.accessory.context.device.getData(this.managementPointId, 'temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature').value;
+        const temperature = this.safeGetValue<number>('temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature');
         this.platform.log.debug(`[${this.name}] GET HeatingThresholdTemperature domesticHotWaterTank, temperature: ${temperature}`);
         return temperature;
     }
@@ -109,22 +103,14 @@ export class HotWaterTankService {
     async handleHotWaterTankHeatingTargetTemperatureSet(value: CharacteristicValue) {
         const temperature = Math.round(value as number * 2) / 2;
         this.platform.log.debug(`[${this.name}] SET HeatingTargetTemperature domesticHotWaterTank, temperature to: ${temperature}`);
-        try {
-            const temperatureControl = this.accessory.context.device.getData(this.managementPointId, 'temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature');
-            if (temperatureControl.settable === false) {
-                this.platform.log.warn(`[${this.name}] SET HeatingTargetTemperature domesticHotWaterTank is not possible because temperatureControl isn't settable`, temperatureControl);
-            }
-
-            await this.accessory.context.device.setData(this.managementPointId, 'temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature', temperature);
-        } catch (e) {
-            this.platform.log.error('Failed to set', e, JSON.stringify(DaikinCloudRepo.maskSensitiveCloudDeviceData(this.accessory.context.device.desc), null, 4));
-        }
+        // Removed the warning block as safeSetData should handle non-settable properties gracefully.
+        await this.safeSetData('temperatureControl', '/operationModes/heating/setpoints/domesticHotWaterTemperature', temperature);
         this.platform.forceUpdateDevices();
     }
 
     async handleHotWaterTankTargetHeatingCoolingStateGet(): Promise<CharacteristicValue> {
-        const operationMode: DaikinOperationModes = this.accessory.context.device.getData(this.managementPointId, 'operationMode', undefined).value;
-        const state = this.accessory.context.device.getData(this.managementPointId, 'onOffMode', undefined).value;
+        const operationMode: DaikinOperationModes = this.safeGetValue<DaikinOperationModes>('operationMode', undefined, DaikinOperationModes.AUTO);
+        const state = this.safeGetValue('onOffMode', undefined);
         this.platform.log.debug(`[${this.name}] GET TankTargetHeatingCoolingState, operationMode: ${operationMode}, state: ${state}`);
 
         if (state === DaikinOnOffModes.OFF) {
@@ -147,11 +133,7 @@ export class HotWaterTankService {
         let daikinOperationMode: DaikinOperationModes = DaikinOperationModes.COOLING;
 
         if (operationMode === this.platform.Characteristic.TargetHeatingCoolingState.OFF) {
-            try {
-                await this.accessory.context.device.setData(this.managementPointId, 'onOffMode', DaikinOnOffModes.OFF, undefined);
-            } catch (e) {
-                this.platform.log.error('Failed to set', e, JSON.stringify(DaikinCloudRepo.maskSensitiveCloudDeviceData(this.accessory.context.device.desc), null, 4));
-            }
+            await this.safeSetData('onOffMode', undefined, DaikinOnOffModes.OFF);
             return;
         }
 
@@ -169,63 +151,32 @@ export class HotWaterTankService {
 
         this.platform.log.debug(`[${this.name}] SET TargetHeatingCoolingState, daikinOperationMode to: ${daikinOperationMode}`);
 
-        try {
-            // turn on the device as well because there is no specific on/off characteristic in Homebridge, while targetState/operationMode and onOffMode are separate with the Daikin API
-            await this.accessory.context.device.setData(this.managementPointId, 'onOffMode', DaikinOnOffModes.ON, undefined);
-
-            const operationMode = this.accessory.context.device.getData(this.managementPointId, 'operationMode', undefined);
-            if (operationMode.settable === false) {
-                this.platform.log.warn(`[${this.name}] SET TargetHeatingCoolingState is not possible because operationMode isn't settable`, operationMode);
-                return;
-            }
-
-            await this.accessory.context.device.setData(this.managementPointId, 'operationMode', daikinOperationMode, undefined);
-        } catch (e) {
-            this.platform.log.error('Failed to set', e, JSON.stringify(DaikinCloudRepo.maskSensitiveCloudDeviceData(this.accessory.context.device.desc), null, 4));
-        }
+        // turn on the device as well because there is no specific on/off characteristic in Homebridge, while targetState/operationMode and onOffMode are separate with the Daikin API
+        await this.safeSetData('onOffMode', undefined, DaikinOnOffModes.ON);
+        await this.safeSetData('operationMode', undefined, daikinOperationMode);
 
         this.platform.forceUpdateDevices();
     }
 
-    async handlePowerfulModeGet() {
-        const powerfulModeOn = this.accessory.context.device.getData(this.managementPointId, 'powerfulMode', undefined).value === DaikinPowerfulModes.ON;
-        this.platform.log.debug(`[${this.name}] GET PowerfulMode, powerfulModeOn: ${powerfulModeOn}, last update: ${this.accessory.context.device.getLastUpdated()}`);
-        return powerfulModeOn;
-    }
+    getTargetHeatingCoolingStateProps() {
+        const operationModeData = this.getData('operationMode', undefined);
+        this.platform.log.debug('OperationMode', JSON.stringify(operationModeData, null, 4));
 
-    async handlePowerfulModeSet(value: CharacteristicValue) {
-        try {
-            this.platform.log.debug(`[${this.name}] SET PowerfulMode to: ${value}`);
-            const daikinPowerfulMode = value as boolean ? DaikinPowerfulModes.ON : DaikinPowerfulModes.OFF;
-            await this.accessory.context.device.setData(this.managementPointId, 'powerfulMode', daikinPowerfulMode, undefined);
-            this.platform.forceUpdateDevices();
-        } catch (e) {
-            this.platform.log.error('Failed to set', e, JSON.stringify(DaikinCloudRepo.maskSensitiveCloudDeviceData(this.accessory.context.device.desc), null, 4));
-        }
-    }
-
-    getTargetHeatingCoolingStateProps(): PartialAllowingNull<CharacteristicProps> {
-        const operationMode = this.accessory.context.device.getData(this.managementPointId, 'operationMode', undefined);
-        this.platform.log.debug('OperationMode', JSON.stringify(operationMode, null, 4));
-
-        if (operationMode.settable === false) {
-            if (operationMode.value === DaikinOperationModes.HEATING) {
+        // Removed early return for non-settable operationModeData.
+        // The validValues are now determined based on the current value if not settable,
+        // otherwise, all options are available.
+        if (operationModeData && operationModeData.settable === false) {
+            if (operationModeData.value === DaikinOperationModes.HEATING) {
                 return {
                     validValues: [this.platform.Characteristic.TargetHeatingCoolingState.OFF, this.platform.Characteristic.TargetHeatingCoolingState.HEAT],
                 };
-            } else if (operationMode.value === DaikinOperationModes.COOLING) {
+            } else if (operationModeData.value === DaikinOperationModes.COOLING) {
                 return {
                     validValues: [this.platform.Characteristic.TargetHeatingCoolingState.OFF, this.platform.Characteristic.TargetHeatingCoolingState.COOL],
                 };
-            } else if (operationMode.value === DaikinOperationModes.AUTO) {
+            } else if (operationModeData.value === DaikinOperationModes.AUTO) {
                 return {
                     validValues: [this.platform.Characteristic.TargetHeatingCoolingState.OFF, this.platform.Characteristic.TargetHeatingCoolingState.AUTO],
-                };
-            } else {
-                return {
-                    minValue: 0,
-                    maxValue: 3,
-                    minStep: 1,
                 };
             }
         }
@@ -237,22 +188,20 @@ export class HotWaterTankService {
         };
     }
 
-    hasPowerfulModeFeature() {
-        const powerfulMode = this.accessory.context.device.getData(this.managementPointId, 'powerfulMode', undefined);
-        this.platform.log.debug(`[${this.name}] hasPowerfulModeFeature, powerfulMode: ${Boolean(powerfulMode)}`);
-        return Boolean(powerfulMode);
+    async handlePowerfulModeGet(): Promise<boolean> {
+        const powerfulModeData = this.getData('powerfulMode', undefined);
+        const powerfulModeOn = powerfulModeData?.value === DaikinPowerfulModes.ON;
+        this.platform.log.debug(`[${this.name}] GET PowerfulMode, powerfulModeOn: ${powerfulModeOn}, last update: ${this.accessory.context.device.getLastUpdated()}`);
+        return powerfulModeOn;
     }
-}
 
-enum DaikinOnOffModes {
-    ON = 'on',
-    OFF = 'off',
-}
+    async handlePowerfulModeSet(value: CharacteristicValue) {
+        this.platform.log.debug(`[${this.name}] SET PowerfulMode, powerful: ${value}`);
+        await this.safeSetData('powerfulMode', undefined, value ? DaikinPowerfulModes.ON : DaikinPowerfulModes.OFF);
+        this.platform.forceUpdateDevices();
+    }
 
-enum DaikinOperationModes {
-    FAN_ONLY = 'fanOnly',
-    HEATING = 'heating',
-    COOLING = 'cooling',
-    AUTO = 'auto',
-    DRY = 'dry'
+    hasPowerfulModeFeature(): boolean {
+        return Boolean(this.getData('powerfulMode', undefined));
+    }
 }

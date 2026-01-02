@@ -1,19 +1,19 @@
-import {PlatformAccessory} from 'homebridge/lib/platformAccessory';
-import {DaikinCloudAccessoryContext, DaikinCloudPlatform} from '../src/platform';
-import {MockPlatformConfig} from './mocks';
-import {daikinAlthermaAccessory} from '../src/daikinAlthermaAccessory';
-import {DaikinCloudDevice} from 'daikin-controller-cloud/dist/device';
-import {OnectaClient} from 'daikin-controller-cloud/dist/onecta/oidc-client';
-import {DaikinCloudController} from 'daikin-controller-cloud/dist/index.js';
-import {althermaV1ckoeln} from './fixtures/altherma-v1ckoeln';
-import {althermaCrSense2} from './fixtures/altherma-crSense-2';
-import {althermaWithEmbeddedIdZero} from './fixtures/altherma-with-embedded-id-zero';
-import {althermaHeatPump} from './fixtures/altherma-heat-pump';
-import {althermaHeatPump2} from './fixtures/altherma-heat-pump-2';
-import {althermaFraction} from './fixtures/altherma-fraction';
-import {althermaMiladcerkic} from './fixtures/altherma-miladcerkic';
+import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
+import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../src/platform';
+import { MockPlatformConfig } from './mocks';
+import { daikinAlthermaAccessory } from '../src/daikinAlthermaAccessory';
+import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
+import { OnectaClient } from 'daikin-controller-cloud/dist/onecta/oidc-client';
+import { DaikinCloudController } from 'daikin-controller-cloud/dist/index.js';
+import { althermaV1ckoeln } from './fixtures/altherma-v1ckoeln';
+import { althermaCrSense2 } from './fixtures/altherma-crSense-2';
+import { althermaWithEmbeddedIdZero } from './fixtures/altherma-with-embedded-id-zero';
+import { althermaHeatPump } from './fixtures/altherma-heat-pump';
+import { althermaHeatPump2 } from './fixtures/altherma-heat-pump-2';
+import { althermaFraction } from './fixtures/altherma-fraction';
+import { althermaMiladcerkic } from './fixtures/altherma-miladcerkic';
 
-import {HomebridgeAPI} from 'homebridge/lib/api.js';
+import { HomebridgeAPI } from 'homebridge/lib/api.js';
 import { Logger } from 'homebridge/lib/logger.js';
 
 type DeviceState = {
@@ -269,10 +269,10 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     const homebridgeAccessory = new daikinAlthermaAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
 
     await homebridgeAccessory.service?.handleActiveStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControlMainZone', 'onOffMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControlMainZone', 'onOffMode', null, 'on');
 
     await homebridgeAccessory.service?.handleActiveStateSet(0);
-    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControlMainZone', 'onOffMode', 'off', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControlMainZone', 'onOffMode', null, 'off');
 
     await homebridgeAccessory.service?.handleCoolingThresholdTemperatureSet(21);
     expect(setDataSpy).toHaveBeenNthCalledWith(3, 'climateControlMainZone', 'temperatureControl', '/operationModes/cooling/setpoints/roomTemperature', 21);
@@ -281,8 +281,21 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     expect(setDataSpy).toHaveBeenNthCalledWith(4, 'climateControlMainZone', 'temperatureControl', '/operationModes/heating/setpoints/roomTemperature', 25);
 
     await homebridgeAccessory.service?.handleTargetHeaterCoolerStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(5, 'climateControlMainZone', 'operationMode', 'heating', undefined);
-    expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControlMainZone', 'onOffMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(5, 'climateControlMainZone', 'operationMode', null, 'heating');
+    expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControlMainZone', 'onOffMode', null, 'on');
 
+    if (homebridgeAccessory.hotWaterTankService) {
+        await homebridgeAccessory.hotWaterTankService.handleHotWaterTankTargetHeatingCoolingStateSet(0);
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', null, 'off');
 
+        await homebridgeAccessory.hotWaterTankService.handleHotWaterTankTargetHeatingCoolingStateSet(1);
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', null, 'on');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'operationMode', null, 'heating');
+
+        await homebridgeAccessory.hotWaterTankService.handlePowerfulModeSet(true);
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', null, 'on');
+
+        await homebridgeAccessory.hotWaterTankService.handlePowerfulModeSet(false);
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', null, 'off');
+    }
 });

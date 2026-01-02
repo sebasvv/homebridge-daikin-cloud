@@ -1,18 +1,18 @@
-import {API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service} from 'homebridge';
+import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
 
-import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
-import {daikinAirConditioningAccessory} from './daikinAirConditioningAccessory';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { daikinAirConditioningAccessory } from './daikinAirConditioningAccessory';
 
-import {DaikinCloudController} from 'daikin-controller-cloud';
+import { DaikinCloudController } from 'daikin-controller-cloud';
 
-import {daikinAlthermaAccessory} from './daikinAlthermaAccessory';
-import {resolve} from 'node:path';
-import {DaikinCloudDevice} from 'daikin-controller-cloud/dist/device';
-import {StringUtils} from './utils/strings';
-import {OnectaClientConfig} from 'daikin-controller-cloud/dist/onecta/oidc-utils';
+import { daikinAlthermaAccessory } from './daikinAlthermaAccessory';
+import { resolve } from 'node:path';
+import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
+import { StringUtils } from './utils/strings';
+import { OnectaClientConfig } from 'daikin-controller-cloud/dist/onecta/oidc-utils';
 
-import fs from 'node:fs';
-import {DaikinCloudRepo} from './repository/daikinCloudRepo';
+import { stat, unlink } from 'node:fs/promises';
+import { DaikinCloudRepo, DaikinManagementPoint } from './repository/daikinCloudRepo';
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
@@ -61,13 +61,13 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
         this.log.debug('[Config] DaikinCloudController config', this.getPrivacyFriendlyOnectaClientConfig(daikinCloudControllerConfig));
 
 
-        fs.stat(daikinCloudControllerConfig.oidcTokenSetFilePath!, (err, stats) => {
-            if (err) {
-                this.log.debug('[Config] DaikinCloudController config, oidcTokenSetFile does NOT YET exist, expect a message to start the authorisation flow');
-            } else {
+        stat(daikinCloudControllerConfig.oidcTokenSetFilePath!)
+            .then(stats => {
                 this.log.debug(`[Config] DaikinCloudController config, oidcTokenSetFile does exist, last modified: ${stats.mtime}, created: ${stats.birthtime}`);
-            }
-        });
+            })
+            .catch(() => {
+                this.log.debug('[Config] DaikinCloudController config, oidcTokenSetFile does NOT YET exist, expect a message to start the authorisation flow');
+            });
 
         this.controller = new DaikinCloudController(daikinCloudControllerConfig);
 
@@ -150,8 +150,9 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
                     }
 
                 } else {
-                    const climateControlEmbeddedId = device.desc.managementPoints.find(mp => mp.managementPointType === 'climateControl')?.embeddedId;
-                    const name: string = device.getData(climateControlEmbeddedId, 'name', undefined).value;
+                    const climateControlEmbeddedId = device.desc.managementPoints.find((mp: DaikinManagementPoint) => mp.managementPointType === 'climateControl')?.embeddedId;
+                    const nameData = DaikinCloudRepo.getData(device, climateControlEmbeddedId, 'name', undefined);
+                    const name: string = nameData ? nameData.value as string : '';
                     this.log.info('[Platform] Adding new accessory, deviceModel:', StringUtils.isEmpty(name) ? deviceModel : name);
                     const accessory = new this.api.platformAccessory<DaikinCloudAccessoryContext>(StringUtils.isEmpty(name) ? deviceModel : name, uuid);
                     accessory.context.device = device;
@@ -211,7 +212,7 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
             ...config,
             clientId: StringUtils.mask(config.clientId),
             clientSecret: StringUtils.mask(config.clientSecret),
-            excludedDevicesByDeviceId: config.excludedDevicesByDeviceId ? config.excludedDevicesByDeviceId.map(deviceId => StringUtils.mask(deviceId)) : [],
+            excludedDevicesByDeviceId: config.excludedDevicesByDeviceId ? config.excludedDevicesByDeviceId.map((deviceId: string) => StringUtils.mask(deviceId)) : [],
         };
     }
 
@@ -223,10 +224,10 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
         };
     }
 
-    private onInvalidGrantError(daikinCloudControllerConfig: OnectaClientConfig) {
+    private async onInvalidGrantError(daikinCloudControllerConfig: OnectaClientConfig) {
         this.log.warn('[API Syncing] TokenSet is invalid, removing TokenSet file');
         try {
-            fs.unlinkSync(daikinCloudControllerConfig.oidcTokenSetFilePath!);
+            await unlink(daikinCloudControllerConfig.oidcTokenSetFilePath!);
             this.log.warn('[API Syncing] TokenSet file is removed, restart Homebridge to restart the authorisation flow');
         } catch (e) {
             this.log.error('[API Syncing] TokenSet file could not be removed, remove it manually. Location: ', daikinCloudControllerConfig.oidcTokenSetFilePath, e);

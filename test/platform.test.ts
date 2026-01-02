@@ -41,7 +41,7 @@ test('DaikinCloudPlatform with new Aircondition accessory', (done) => {
                 deviceModel: 'Airco',
             };
         },
-        getData: () => 'MOCK_DATE',
+        getData: () => ({ value: 'MOCK_VALUE' }),
         desc: {
             managementPoints: [
                 {
@@ -75,7 +75,7 @@ test('DaikinCloudPlatform with new Altherma accessory', (done) => {
                 deviceModel: 'Altherma',
             };
         },
-        getData: () => 'MOCK_DATE',
+        getData: () => ({ value: 'MOCK_VALUE' }),
         desc: {
             managementPoints: [
                 {

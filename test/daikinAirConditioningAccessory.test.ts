@@ -1,34 +1,34 @@
-import {PlatformAccessory} from 'homebridge/lib/platformAccessory';
-import {DaikinCloudAccessoryContext, DaikinCloudPlatform} from '../src/platform';
-import {MockPlatformConfig} from './mocks';
-import {daikinAirConditioningAccessory} from '../src/daikinAirConditioningAccessory';
-import {DaikinCloudDevice} from 'daikin-controller-cloud/dist/device';
-import {DaikinCloudController} from 'daikin-controller-cloud/dist/index.js';
-import {OnectaClient} from 'daikin-controller-cloud/dist/onecta/oidc-client';
-import {unknownJan} from './fixtures/unknown-jan';
-import {unknownKitchenGuests} from './fixtures/unknown-kitchen-guests';
-import {dx23Airco} from './fixtures/dx23-airco';
-import {dx4Airco} from './fixtures/dx4-airco';
-import {dx23Airco2} from './fixtures/dx23-airco-2';
+import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
+import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../src/platform';
+import { MockPlatformConfig } from './mocks';
+import { daikinAirConditioningAccessory } from '../src/daikinAirConditioningAccessory';
+import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
+import { DaikinCloudController } from 'daikin-controller-cloud/dist/index.js';
+import { OnectaClient } from 'daikin-controller-cloud/dist/onecta/oidc-client';
+import { unknownJan } from './fixtures/unknown-jan';
+import { unknownKitchenGuests } from './fixtures/unknown-kitchen-guests';
+import { dx23Airco } from './fixtures/dx23-airco';
+import { dx4Airco } from './fixtures/dx4-airco';
+import { dx23Airco2 } from './fixtures/dx23-airco-2';
 
-import {HomebridgeAPI} from 'homebridge/lib/api.js';
-import {Logger} from 'homebridge/lib/logger.js';
+import { HomebridgeAPI } from 'homebridge/lib/api.js';
+import { Logger } from 'homebridge/lib/logger.js';
 
 type DeviceState = {
-	activeState: boolean;
-	currentTemperature: number;
-	targetHeaterCoolerState: string;
-	coolingThresholdTemperature: number;
-	heatingThresholdTemperature: number;
-	rotationSpeed: number;
-	swingMode: number;
-	powerfulMode: number;
-	econoMode: number;
-	streamerMode: number;
-	outdoorSilentMode: number;
-	indoorSilentMode: number;
-	dryOperationMode: number;
-	fanOnlyOperationMode: number;
+    activeState: boolean;
+    currentTemperature: number;
+    targetHeaterCoolerState: string;
+    coolingThresholdTemperature: number;
+    heatingThresholdTemperature: number;
+    rotationSpeed: number;
+    swingMode: number;
+    powerfulMode: number;
+    econoMode: number;
+    streamerMode: number;
+    outdoorSilentMode: number;
+    indoorSilentMode: number;
+    dryOperationMode: number;
+    fanOnlyOperationMode: number;
 };
 
 test.each<Array<string | string | any | DeviceState>>([
@@ -274,7 +274,7 @@ test.each<Array<string | string | any>>([
 
     const removeServiceSpy = jest.spyOn(accessory, 'removeService').mockImplementation();
 
-    const homebridgeAccessory = new daikinAirConditioningAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
+    new daikinAirConditioningAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
 
 
     expect(removeServiceSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({ displayName: 'Powerful mode', subtype: 'Powerful_Mode' }));
@@ -335,10 +335,10 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     const homebridgeAccessory = new daikinAirConditioningAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
 
     await homebridgeAccessory.service.handleActiveStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControl', 'onOffMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControl', 'onOffMode', null, 'on');
 
     await homebridgeAccessory.service.handleActiveStateSet(0);
-    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControl', 'onOffMode', 'off', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControl', 'onOffMode', null, 'off');
 
     await homebridgeAccessory.service.handleCoolingThresholdTemperatureSet(21);
     expect(setDataSpy).toHaveBeenNthCalledWith(3, 'climateControl', 'temperatureControl', '/operationModes/cooling/setpoints/roomTemperature', 21);
@@ -351,24 +351,24 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControl', 'temperatureControl', '/operationModes/heating/setpoints/roomTemperature', 25);
 
     await homebridgeAccessory.service.handleTargetHeaterCoolerStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(7, 'climateControl', 'operationMode', 'heating', undefined);
-    expect(setDataSpy).toHaveBeenNthCalledWith(8, 'climateControl', 'onOffMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(7, 'climateControl', 'operationMode', null, 'heating');
+    expect(setDataSpy).toHaveBeenNthCalledWith(8, 'climateControl', 'onOffMode', null, 'on');
 
     await homebridgeAccessory.service.handleSwingModeSet(1);
     expect(setDataSpy).toHaveBeenNthCalledWith(9, 'climateControl', 'fanControl', '/operationModes/heating/fanDirection/horizontal/currentMode', 'swing');
     expect(setDataSpy).toHaveBeenNthCalledWith(10, 'climateControl', 'fanControl', '/operationModes/heating/fanDirection/vertical/currentMode', 'swing');
 
     await homebridgeAccessory.service.handlePowerfulModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(11, 'climateControl', 'powerfulMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(11, 'climateControl', 'powerfulMode', null, 'on');
 
     await homebridgeAccessory.service.handleEconoModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(12, 'climateControl', 'econoMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(12, 'climateControl', 'econoMode', null, 'on');
 
     await homebridgeAccessory.service.handleStreamerModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(13, 'climateControl', 'streamerMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(13, 'climateControl', 'streamerMode', null, 'on');
 
     await homebridgeAccessory.service.handleOutdoorSilentModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(14, 'climateControl', 'outdoorSilentMode', 'on', undefined);
+    expect(setDataSpy).toHaveBeenNthCalledWith(14, 'climateControl', 'outdoorSilentMode', null, 'on');
 
     await homebridgeAccessory.service.handleIndoorSilentModeSet(1);
     expect(setDataSpy).toHaveBeenNthCalledWith(15, 'climateControl', 'fanControl', '/operationModes/heating/fanSpeed/currentMode', 'quiet');

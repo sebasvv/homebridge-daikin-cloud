@@ -1,9 +1,9 @@
 // https://github.com/timcharper/homebridge-vivint/blob/5b3bfa4cc886c5680af3b2e31706ef9b1bf2705f/test/device_set_test.js
 // https://github.com/break-pointer/homebridge-tion/blob/13f1c410c6ee8ca13b41b8700c4b1de96e04b263/test/mocks.ts#L49
 
-import {PlatformConfig} from "homebridge";
+import { PlatformConfig } from "homebridge";
 
-export const MockLogger = (...args) => jest.fn();
+export const MockLogger = (...args: any[]) => jest.fn();
 MockLogger.debug = MockLogger;
 MockLogger.info = MockLogger;
 MockLogger.success = MockLogger;
