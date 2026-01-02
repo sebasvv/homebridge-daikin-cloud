@@ -1,16 +1,16 @@
 {
   "displayName": "Daikin Cloud",
   "platformname": "daikincloud",
-  "name": "homebridge-daikin-cloud",
+  "name": "@sebasvv/homebridge-daikin-cloud",
   "version": "2.9.0",
   "description": "Integrate with the Daikin Cloud to control your Daikin air conditioning via the cloud",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/jeroenvdb/homebridge-daikin-cloud.git"
+    "url": "git+https://github.com/sebasvv/homebridge-daikin-cloud.git"
   },
   "bugs": {
-    "url": "https://github.com/jeroenvdb/homebridge-daikin-cloud/issues"
+    "url": "https://github.com/sebasvv/homebridge-daikin-cloud/issues"
   },
   "engines": {
     "node": ">=18.15.0",
@@ -53,10 +53,7 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.51.0"
   },
-  "funding": [
-    {
-      "type": "paypal",
-      "url": "https://www.paypal.me/jrnvdb"
-    }
-  ]
+  "publishConfig": {
+    "access": "public"
+  }
 }
