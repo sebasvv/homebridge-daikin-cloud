@@ -1,4 +1,4 @@
-import { HotWaterTankService } from '../src/hotWaterTankService';
+import { HotWaterTankService } from '../src/services/hotWaterTankService';
 import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
 import { MockPlatformConfig } from './mocks';
 import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../src/platform';

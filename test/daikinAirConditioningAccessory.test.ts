@@ -1,7 +1,7 @@
 import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
 import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../src/platform';
 import { MockPlatformConfig } from './mocks';
-import { daikinAirConditioningAccessory } from '../src/daikinAirConditioningAccessory';
+import { daikinAirConditioningAccessory } from '../src/accessories/daikinAirConditioningAccessory';
 import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
 import { DaikinCloudController } from 'daikin-controller-cloud/dist/index.js';
 import { OnectaClient } from 'daikin-controller-cloud/dist/onecta/oidc-client';

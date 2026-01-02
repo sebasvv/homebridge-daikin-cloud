@@ -1,15 +1,15 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-
 ## [2.9.0] - 2025-01-30
 
 ### Added
 
-- Added `CurrentHeatingCoolingState` characteristic for Hot Wat Tank 
+- Added `CurrentHeatingCoolingState` characteristic for Hot Wat Tank
 - Added Powerful mode switch for Hot Wat Tank (when using the `showExtraFeatures` option)
 - Added a lot of "e2e" tests with device mocks shared in the issues so we can spot regressions more easily
 
@@ -32,7 +32,7 @@ In this update the plugin will remove the `.daikin-controller-cloud-tokenset` fi
 
 ### Added
 
-- Remove TokenSet file when refresh token is invalidated  
+- Remove TokenSet file when refresh token is invalidated
 
 ## [2.7.0] - 2024-10-22
 
@@ -54,7 +54,7 @@ In this update the plugin will remove the `.daikin-controller-cloud-tokenset` fi
 
 ### Fixes
 
-- Optional add CoolingThresholdTemperature and heatingThresholdTemperature for devices that don't support roomTemperature temperature control (fixes 
+- Optional add CoolingThresholdTemperature and heatingThresholdTemperature for devices that don't support roomTemperature temperature control (fixes
   https://github.com/JeroenVdb/homebridge-daikin-cloud/issues/81)
 
 ## [2.5.0] - 2024-08-05
@@ -73,7 +73,7 @@ In this update the plugin will remove the `.daikin-controller-cloud-tokenset` fi
 
 ### Added
 
-- Extra configuration `forceUpdateDelay`: The amount of time to wait before updating the device data again after a change (PATCH) has been made. This can be 
+- Extra configuration `forceUpdateDelay`: The amount of time to wait before updating the device data again after a change (PATCH) has been made. This can be
   useful if you have a device that is not updating correctly (fixes https://github.com/JeroenVdb/homebridge-daikin-cloud/issues/55#issuecomment-2256455690)
 
 ## [2.4.0] - 2024-07-09
@@ -86,14 +86,14 @@ In this update the plugin will remove the `.daikin-controller-cloud-tokenset` fi
 
 - When operation mode is dry you should not be able to set or get the rotation speed because it is not a characteristics for dry mode (fixes https://github.com/JeroenVdb/homebridge-daikin-cloud/issues/66)
 
-## [2.3.0] - 2024-07-02  - 2024-07-04
+## [2.3.0] - 2024-07-02 - 2024-07-04
 
 ### Added
 
 - Update daikin-cloud-controller: the controller will now block communication to Daikin when it detects that you have hit your rate limit. If this is not
   done you will start consuming calls from your next rate limit window. See: https://github.com/Apollon77/daikin-controller-cloud/pull/147
 
-## [2.2.0] - 2024-07-02  - 2024-07-04
+## [2.2.0] - 2024-07-02 - 2024-07-04
 
 ### Added
 
@@ -103,7 +103,7 @@ In this update the plugin will remove the `.daikin-controller-cloud-tokenset` fi
 
 ### Fixed
 
-## [2.0.0 - 2.1.0] - 2024-07-02  - 2024-07-03
+## [2.0.0 - 2.1.0] - 2024-07-02 - 2024-07-03
 
 ### Added
 

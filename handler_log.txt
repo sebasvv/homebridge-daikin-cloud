@@ -1,0 +1,104 @@
+FAIL test/services/climateControlHandlers.test.ts
+  ClimateControlHandlers
+    ✓ handleActiveStateGet returns true when ON (2 ms)
+    ✓ handleActiveStateGet returns false when OFF
+    ✓ handleActiveStateSet turns ON (1 ms)
+    ✓ handleActiveStateSet turns OFF
+    ✕ handleCurrentTemperatureGet (1 ms)
+    ✕ handleCoolingThresholdTemperatureGet (1 ms)
+    ✓ handleCoolingThresholdTemperatureSet
+    ✓ handleRotationSpeedGet
+    ✓ handleRotationSpeedSet
+    ✓ handleHeatingThresholdTemperatureGet
+    ✓ handleHeatingThresholdTemperatureSet
+    ✓ handlePowerfulModeGet/Set
+    ✓ handleEconoModeGet/Set (1 ms)
+    ✓ handleStreamerModeGet/Set
+    ✓ handleOutdoorSilentModeGet/Set
+    ✓ handleIndoorSilentModeGet/Set
+    ✓ handleDryOperationModeGet/Set
+    ✓ handleFanOnlyOperationModeGet/Set
+    ✓ safeSetData logs error on failure
+    TargetHeaterCoolerState
+      ✓ GET returns COOL
+      ✓ GET returns HEAT (1 ms)
+      ✓ GET returns AUTO for DRY (and updates rotation)
+      ✓ SET COOL
+      ✓ SET HEAT
+      ✓ SET AUTO
+    SwingMode
+      ✓ SET Swing ENABLED (Vertical + Horizontal)
+      ✓ GET Swing DISABLED
+
+  ● ClimateControlHandlers › handleCurrentTemperatureGet
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "sensoryData", "/control-mode"
+    Received: "sensoryData", "/control-mode", 0
+
+    Number of calls: 1
+
+      94 |         (mockHelper.safeGetValue as jest.Mock).mockReturnValue(22.5);
+      95 |         expect(await handlers.handleCurrentTemperatureGet()).toBe(22.5);
+    > 96 |         expect(mockHelper.safeGetValue).toHaveBeenCalledWith('sensoryData', '/control-mode');
+         |                                         ^
+      97 |     });
+      98 |
+      99 |     test('handleCoolingThresholdTemperatureGet', async () => {
+
+      at Object.<anonymous> (test/services/climateControlHandlers.test.ts:96:41)
+
+  ● ClimateControlHandlers › handleCoolingThresholdTemperatureGet
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "temperatureControl", "/operationModes/cooling/setpoints/setpoint"
+    Received: "temperatureControl", "/operationModes/cooling/setpoints/setpoint", 0
+
+    Number of calls: 1
+
+      101 |         (mockHelper.safeGetValue as jest.Mock).mockReturnValue(24);
+      102 |         expect(await handlers.handleCoolingThresholdTemperatureGet()).toBe(24);
+    > 103 |         expect(mockHelper.safeGetValue).toHaveBeenCalledWith(
+          |                                         ^
+      104 |             'temperatureControl',
+      105 |             `/operationModes/${DaikinOperationModes.COOLING}/setpoints/setpoint`
+      106 |         );
+
+      at Object.<anonymous> (test/services/climateControlHandlers.test.ts:103:41)
+
+------------------------------------|---------|----------|---------|---------|-------------------
+File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------------------|---------|----------|---------|---------|-------------------
+All files                           |   25.43 |    18.21 |   27.33 |   25.77 |                   
+ src                                |       0 |        0 |       0 |       0 |                   
+  config.ts                         |       0 |      100 |     100 |       0 | 1-3               
+  index.ts                          |       0 |      100 |       0 |       0 | 3-10              
+  platform.ts                       |       0 |        0 |       0 |       0 | 11-295            
+  settings.ts                       |       0 |      100 |     100 |       0 | 4-9               
+ src/accessories                    |       0 |        0 |       0 |       0 |                   
+  daikinAccessory.ts                |       0 |        0 |       0 |       0 | 3-85              
+  daikinAirConditioningAccessory.ts |       0 |        0 |       0 |       0 | 3-17              
+  daikinAlthermaAccessory.ts        |       0 |        0 |       0 |       0 | 3-33              
+ src/repositories                   |    4.76 |        0 |       0 |    7.14 |                   
+  daikinCloudRepo.ts                |    4.76 |        0 |       0 |    7.14 | 39-66             
+ src/services                       |   35.67 |    22.36 |   36.28 |   35.67 |                   
+  baseService.ts                    |   82.35 |    81.48 |   68.75 |   82.35 | 7-39              
+  climateControlHandlers.ts         |   98.49 |    70.73 |     100 |   98.49 | 149,232           
+  climateControlHelper.ts           |       0 |        0 |       0 |       0 | 3-179             
+  climateControlService.ts          |       0 |        0 |       0 |       0 | 3-482             
+  hotWaterTankService.ts            |       0 |        0 |       0 |       0 | 3-255             
+  logger.ts                         |       0 |        0 |       0 |       0 | 3-31              
+ src/utils                          |       0 |        0 |       0 |       0 |                   
+  strings.ts                        |       0 |        0 |       0 |       0 | 1-20              
+------------------------------------|---------|----------|---------|---------|-------------------
+Jest: "global" coverage threshold for statements (80%) not met: 25.43%
+Jest: "global" coverage threshold for branches (80%) not met: 18.21%
+Jest: "global" coverage threshold for lines (80%) not met: 25.77%
+Jest: "global" coverage threshold for functions (80%) not met: 27.33%
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 25 passed, 27 total
+Snapshots:   0 total
+Time:        3.314 s
+Ran all test suites matching /test\/services\/climateControlHandlers.test.ts/i.

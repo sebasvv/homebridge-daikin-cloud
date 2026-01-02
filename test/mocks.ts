@@ -18,8 +18,9 @@ export class MockPlatformConfig implements PlatformConfig {
     clientSecret = 'CLIENT_SECRET';
     oidcCallbackServerBindAddr = 'SERVER_BIND_ADDRESS';
     callbackServerExternalAddress = 'SERVER_EXTERNAL_ADDRESS';
-    callbackServerPort = 'SERVER_PORT';
+    callbackServerPort = 3000;
     showExtraFeatures: boolean;
+    excludedDevicesByDeviceId?: string[];
 
     constructor(showExtraFeatures = false) {
         this.showExtraFeatures = showExtraFeatures;

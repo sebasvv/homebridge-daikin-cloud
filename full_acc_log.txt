@@ -1,0 +1,65 @@
+FAIL test/accessories/daikinAccessory.test.ts
+  daikinAccessory
+    ✕ should initialize and set characteristics (3 ms)
+    ✓ should handle missing model and serial safely
+    ✓ getEmbeddedIdByManagementPointType should return correctly for single match
+    ✓ getEmbeddedIdByManagementPointType should log error and return null for no match (1 ms)
+    ✓ getEmbeddedIdByManagementPointType should log warn and return null for multiple matches
+    ✓ should register update listener
+
+  ● daikinAccessory › should initialize and set characteristics
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "Model", "GatewayModel"
+    Received
+           1: "Manufacturer", "Daikin"
+           2: "Model", "UNKNOWN"
+           3: "SerialNumber", "NOT_AVAILABLE"
+
+    Number of calls: 3
+
+      81 |
+      82 |         expect(service?.setCharacteristic).toHaveBeenCalledWith(mockPlatform.Characteristic.Manufacturer, 'Daikin');
+    > 83 |         expect(service?.setCharacteristic).toHaveBeenCalledWith(mockPlatform.Characteristic.Model, 'GatewayModel');
+         |                                            ^
+      84 |         expect(service?.setCharacteristic).toHaveBeenCalledWith(mockPlatform.Characteristic.SerialNumber, 'Serial123');
+      85 |
+      86 |         expect(mockPlatform.daikinLogger.info).toHaveBeenCalledWith(expect.stringContaining('Device found with id'));
+
+      at Object.<anonymous> (test/accessories/daikinAccessory.test.ts:83:44)
+
+------------------------------------|---------|----------|---------|---------|-------------------
+File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------------------|---------|----------|---------|---------|-------------------
+All files                           |    4.09 |     2.14 |    4.66 |    4.14 |                   
+ src                                |       0 |        0 |       0 |       0 |                   
+  config.ts                         |       0 |      100 |     100 |       0 | 1-3               
+  index.ts                          |       0 |      100 |       0 |       0 | 3-10              
+  platform.ts                       |       0 |        0 |       0 |       0 | 11-295            
+  settings.ts                       |       0 |      100 |     100 |       0 | 4-9               
+ src/accessories                    |   52.17 |    28.57 |   71.42 |   52.17 |                   
+  daikinAccessory.ts                |     100 |      100 |     100 |     100 |                   
+  daikinAirConditioningAccessory.ts |       0 |        0 |       0 |       0 | 3-17              
+  daikinAlthermaAccessory.ts        |       0 |        0 |       0 |       0 | 3-33              
+ src/repositories                   |   19.04 |    33.33 |      50 |   28.57 |                   
+  daikinCloudRepo.ts                |   19.04 |    33.33 |      50 |   28.57 | 54-66             
+ src/services                       |       0 |        0 |       0 |       0 |                   
+  baseService.ts                    |       0 |        0 |       0 |       0 | 3-111             
+  climateControlHandlers.ts         |       0 |        0 |       0 |       0 | 5-353             
+  climateControlHelper.ts           |       0 |        0 |       0 |       0 | 3-179             
+  climateControlService.ts          |       0 |        0 |       0 |       0 | 3-482             
+  hotWaterTankService.ts            |       0 |        0 |       0 |       0 | 3-255             
+  logger.ts                         |       0 |        0 |       0 |       0 | 3-31              
+ src/utils                          |       0 |        0 |       0 |       0 |                   
+  strings.ts                        |       0 |        0 |       0 |       0 | 1-20              
+------------------------------------|---------|----------|---------|---------|-------------------
+Jest: "global" coverage threshold for statements (80%) not met: 4.09%
+Jest: "global" coverage threshold for branches (80%) not met: 2.14%
+Jest: "global" coverage threshold for lines (80%) not met: 4.14%
+Jest: "global" coverage threshold for functions (80%) not met: 4.66%
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 5 passed, 6 total
+Snapshots:   0 total
+Time:        4.087 s
+Ran all test suites matching /test\/accessories\/daikinAccessory.test.ts/i.

@@ -1,7 +1,7 @@
 import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
 import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../src/platform';
 import { MockPlatformConfig } from './mocks';
-import { daikinAlthermaAccessory } from '../src/daikinAlthermaAccessory';
+import { daikinAlthermaAccessory } from '../src/accessories/daikinAlthermaAccessory';
 import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
 import { OnectaClient } from 'daikin-controller-cloud/dist/onecta/oidc-client';
 import { DaikinCloudController } from 'daikin-controller-cloud/dist/index.js';
