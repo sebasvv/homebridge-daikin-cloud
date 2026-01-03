@@ -15,14 +15,11 @@ jobs:
     npm-publish:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
-
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
                   registry-url: 'https://registry.npmjs.org'
-                  scope: '@sebasvv'
 
             - run: npm ci
 
-            - run: npm publish --access public --provenance
+            - run: npm config list && npm publish --access public
