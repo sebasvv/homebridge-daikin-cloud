@@ -19,8 +19,8 @@ jobs:
               with:
                   node-version: 20
                   registry-url: https://registry.npmjs.org/
+                  scope: '@sebasvv'
 
             - run: npm ci
             - run: npm run build
-            - run: npm config delete //registry.npmjs.org/:_authToken || true
             - run: npm publish --provenance --access public
