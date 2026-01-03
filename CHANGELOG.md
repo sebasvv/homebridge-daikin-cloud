@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.0.8](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.7...v3.0.8) (2026-01-03)
+
+### Bug Fixes
+
+- **api:** do not send path:null to api to avoid 422 errors ([635af28](https://github.com/sebasvv/homebridge-daikin-cloud/commit/635af289e0465c725da08821eab3927655694c5f))
+
 ### [3.0.2](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.6...v3.0.2) (2026-01-03)
 
 ### Bug Fixes
