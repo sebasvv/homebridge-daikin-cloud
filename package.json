@@ -5,10 +5,7 @@
     "version": "3.0.0",
     "description": "Integrate with the Daikin Cloud to control your Daikin air conditioning via the cloud",
     "license": "Apache-2.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/sebasvv/homebridge-daikin-cloud.git"
-    },
+    "repository": "github:sebasvv/homebridge-daikin-cloud",
     "bugs": {
         "url": "https://github.com/sebasvv/homebridge-daikin-cloud/issues"
     },
