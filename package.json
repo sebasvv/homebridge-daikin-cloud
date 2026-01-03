@@ -17,12 +17,19 @@
         "homebridge": ">=1.5.0 || ^2.0.0-beta.0"
     },
     "main": "dist/src/index.js",
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md",
+        "config.schema.json"
+    ],
     "scripts": {
         "test": "jest",
         "test:updateSnapshots": "jest test/* --updateSnapshot",
         "lint": "eslint src/**.ts --max-warnings=0",
         "watch": "npm run build && npm link && nodemon",
         "build": "rimraf ./dist && tsc",
+        "prepack": "npm run build",
         "release": "npm run verify && standard-version",
         "release:minor": "npm run verify && standard-version --release-as minor",
         "release:patch": "npm run verify && standard-version --release-as patch",
