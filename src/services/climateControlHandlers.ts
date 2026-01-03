@@ -27,7 +27,7 @@ export class ClimateControlHandlers {
 
     private async safeSetData(key: string, path: string | undefined, value: unknown) {
         try {
-            await this.device.setData(this.managementPointId, key, path === undefined ? null : path, value);
+            await this.device.setData(this.managementPointId, key, path, value);
         } catch (e) {
             this.platform.daikinLogger.error(
                 `[${this.name}] Error setting data for ${key} (path: ${path}, value: ${JSON.stringify(value)}): ${e}`,

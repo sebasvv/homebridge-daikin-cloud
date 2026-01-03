@@ -7,7 +7,7 @@ export abstract class BaseService {
         protected readonly platform: DaikinCloudPlatform,
         protected readonly accessory: PlatformAccessory<DaikinCloudAccessoryContext>,
         protected readonly managementPointId: string,
-    ) { }
+    ) {}
 
     protected get name(): string {
         return this.accessory.displayName;
@@ -29,12 +29,7 @@ export abstract class BaseService {
 
     protected async safeSetData(key: string, path: string | undefined, value: unknown) {
         try {
-            await this.accessory.context.device.setData(
-                this.managementPointId,
-                key,
-                path === undefined ? null : path,
-                value,
-            );
+            await this.accessory.context.device.setData(this.managementPointId, key, path, value);
         } catch (e) {
             this.platform.daikinLogger.error(
                 `[${this.name}] Failed to set ${key}${path ? ' ' + path : ''}`,
