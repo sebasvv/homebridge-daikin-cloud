@@ -24,4 +24,4 @@ jobs:
 
             - run: npm ci
 
-            - run: npm config list && npm publish --access public
+            - run: npm publish --access public --provenance
