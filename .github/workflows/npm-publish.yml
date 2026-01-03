@@ -20,6 +20,7 @@ jobs:
               with:
                   node-version: 22
                   registry-url: 'https://registry.npmjs.org'
+                  scope: '@sebasvv'
 
             - run: npm ci
 
