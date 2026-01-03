@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.0.1](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.6...v3.0.1) (2026-01-03)
+
+### Bug Fixes
+
+- add scope to setup-node ([5de2148](https://github.com/sebasvv/homebridge-daikin-cloud/commit/5de21486b4cf7e3e3bcdc32fbc2047b2417001e2))
+- apply OIDC workaround from gist (NODE_AUTH_TOKEN empty) ([c0d928a](https://github.com/sebasvv/homebridge-daikin-cloud/commit/c0d928ae1c75822dd29683b0ab72490e7b0a67f6))
+- remove publishConfig to resolve registry auth ([3cc0341](https://github.com/sebasvv/homebridge-daikin-cloud/commit/3cc03411350f6be009fcbf572fa02d1003fc23d0))
+- restore checkout step ([e5d2410](https://github.com/sebasvv/homebridge-daikin-cloud/commit/e5d241020f127ed1fe028d94f119bd799647cee9))
+- restore registry-url for OIDC auth ([6ce195d](https://github.com/sebasvv/homebridge-daikin-cloud/commit/6ce195d3ea1cd6492fa32809aab4ea8c4fd03e50))
+- upgrade npm to latest to support native OIDC ([6e78b32](https://github.com/sebasvv/homebridge-daikin-cloud/commit/6e78b3218867609f37203dfd3f82edf69086ccb3))
+- use canonical repository format in package.json ([ae55218](https://github.com/sebasvv/homebridge-daikin-cloud/commit/ae55218c0bf808bd64922a453d62b3d47c5971ab))
+
 ### [3.0.6](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.5...v3.0.6) (2026-01-03)
 
 ### Features
