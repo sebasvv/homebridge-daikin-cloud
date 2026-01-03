@@ -19,7 +19,7 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  # registry-url is removed for OIDC/Trusted Publishing
+                  registry-url: 'https://registry.npmjs.org'
 
             - run: npm ci
 
