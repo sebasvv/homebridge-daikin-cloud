@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.0.6](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.5...v3.0.6) (2026-01-03)
+
+### Features
+
+- Enhance npm publish workflow with provenance, public access, and updated setup-node action. ([47a4f43](https://github.com/sebasvv/homebridge-daikin-cloud/commit/47a4f439dcaf03015211a1a5d66839735b3db29c))
+
 ### [3.0.5](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.4...v3.0.5) (2026-01-03)
 
 ### [3.0.4](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.3...v3.0.4) (2026-01-03)
