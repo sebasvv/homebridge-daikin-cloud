@@ -23,13 +23,15 @@ export class ClimateControlHandlers {
         private readonly helper: ClimateControlHelper,
         private readonly forceUpdateDevices: () => void,
         private readonly addOrUpdateCharacteristicRotationSpeed: () => void,
-    ) { }
+    ) {}
 
     private async safeSetData(key: string, path: string | undefined, value: unknown) {
         try {
             await this.device.setData(this.managementPointId, key, path === undefined ? null : path, value);
         } catch (e) {
-            this.platform.daikinLogger.error(`[${this.name}] Error setting data for ${key}: ${e}`);
+            this.platform.daikinLogger.error(
+                `[${this.name}] Error setting data for ${key} (path: ${path}, value: ${JSON.stringify(value)}): ${e}`,
+            );
         }
     }
 
@@ -73,7 +75,9 @@ export class ClimateControlHandlers {
 
     async handleCoolingThresholdTemperatureSet(value: CharacteristicValue) {
         const temperature = Math.round((value as number) * 2) / 2;
-        this.platform.daikinLogger.debug(`[${this.name}] SET CoolingThresholdTemperature, temperature to: ${temperature}`);
+        this.platform.daikinLogger.debug(
+            `[${this.name}] SET CoolingThresholdTemperature, temperature to: ${temperature}`,
+        );
         await this.safeSetData(
             'temperatureControl',
             `/operationModes/${DaikinOperationModes.COOLING}/setpoints/${this.helper.getSetpoint(DaikinOperationModes.COOLING)}`,
@@ -122,7 +126,9 @@ export class ClimateControlHandlers {
 
     async handleHeatingThresholdTemperatureSet(value: CharacteristicValue) {
         const temperature = Math.round((value as number) * 2) / 2;
-        this.platform.daikinLogger.debug(`[${this.name}] SET HeatingThresholdTemperature, temperature to: ${temperature}`);
+        this.platform.daikinLogger.debug(
+            `[${this.name}] SET HeatingThresholdTemperature, temperature to: ${temperature}`,
+        );
         await this.safeSetData(
             'temperatureControl',
             `/operationModes/${DaikinOperationModes.HEATING}/setpoints/${this.helper.getSetpoint(DaikinOperationModes.HEATING)}`,
@@ -203,17 +209,17 @@ export class ClimateControlHandlers {
     async handleSwingModeGet(): Promise<CharacteristicValue> {
         const verticalSwingMode = this.helper.hasSwingModeVerticalFeature()
             ? this.safeGetValue<string | null>(
-                'fanControl',
-                `/operationModes/${this.helper.getCurrentOperationMode()}/fanDirection/vertical/currentMode`,
-                null,
-            )
+                  'fanControl',
+                  `/operationModes/${this.helper.getCurrentOperationMode()}/fanDirection/vertical/currentMode`,
+                  null,
+              )
             : null;
         const horizontalSwingMode = this.helper.hasSwingModeHorizontalFeature()
             ? this.safeGetValue<string | null>(
-                'fanControl',
-                `/operationModes/${this.helper.getCurrentOperationMode()}/fanDirection/horizontal/currentMode`,
-                null,
-            )
+                  'fanControl',
+                  `/operationModes/${this.helper.getCurrentOperationMode()}/fanDirection/horizontal/currentMode`,
+                  null,
+              )
             : null;
         this.platform.daikinLogger.debug(
             `[${this.name}] GET SwingMode, verticalSwingMode: ${verticalSwingMode}, last update: ${this.device.getLastUpdated()}`,
