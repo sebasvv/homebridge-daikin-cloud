@@ -1,3 +1,4 @@
+# Trigger retry after user verification
 name: Publish to npm
 
 on:
