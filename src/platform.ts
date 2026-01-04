@@ -42,7 +42,7 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
     public controller: DaikinCloudController; // Assigned in constructor after validation
 
     public readonly updateIntervalDelay: number;
-    public updateInterval: NodeJS.Timeout | undefined;
+    public updateTimeout: NodeJS.Timeout | undefined;
     public forceUpdateTimeout: NodeJS.Timeout | undefined;
 
     // Use strict config type
@@ -115,10 +115,19 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
             });
 
             this.controller.on('rate_limit_status', (rateLimitStatus) => {
-                if (rateLimitStatus.remainingDay && rateLimitStatus.remainingDay <= 20) {
-                    this.daikinLogger.warn(
-                        `[Rate Limit] Rate limit almost reached, you only have ${rateLimitStatus.remainingDay} calls left today`,
-                    );
+                if (rateLimitStatus.remainingDay !== undefined) {
+                    if (rateLimitStatus.remainingDay <= 10) {
+                        this.daikinLogger.error(
+                            `[Rate Limit] CRITICAL: Only ${rateLimitStatus.remainingDay} calls left today. Stopping polling to preserve ability to control devices manually.`,
+                        );
+                        if (this.updateTimeout) {
+                            clearTimeout(this.updateTimeout);
+                        }
+                    } else if (rateLimitStatus.remainingDay <= 20) {
+                        this.daikinLogger.warn(
+                            `[Rate Limit] WARNING: Rate limit almost reached, you only have ${rateLimitStatus.remainingDay} calls left today`,
+                        );
+                    }
                 }
                 this.daikinLogger.debug(
                     `[Rate Limit] Remaining calls today: ${rateLimitStatus.remainingDay}/${rateLimitStatus.limitDay} -- this minute: ${rateLimitStatus.remainingMinute}/${rateLimitStatus.limitMinute}`,
@@ -246,22 +255,45 @@ export class DaikinCloudPlatform implements DynamicPlatformPlugin {
             `[API Syncing] Force update devices data (delayed by ${delay}, update pending: ${this.forceUpdateTimeout || 'no update pending'})`,
         );
 
-        clearInterval(this.updateInterval);
+        if (this.updateTimeout) {
+            clearTimeout(this.updateTimeout);
+        }
         clearTimeout(this.forceUpdateTimeout);
 
         this.forceUpdateTimeout = setTimeout(async () => {
             await this.updateDevices();
-            this.startUpdateDevicesInterval();
+            this.scheduleNextUpdate();
+        }, delay);
+    }
+
+    private scheduleNextUpdate() {
+        if (this.updateTimeout) {
+            clearTimeout(this.updateTimeout);
+        }
+
+        const now = new Date();
+        const hour = now.getHours();
+        const isNightMode = hour >= 1 && hour < 5;
+
+        // Use 4x the normal interval or at least 60 minutes during night mode
+        const delay = isNightMode ? Math.max(this.updateIntervalDelay * 4, 60 * 60 * 1000) : this.updateIntervalDelay;
+
+        if (isNightMode) {
+            this.daikinLogger.debug(
+                `[API Syncing] Night Mode active (01:00 - 05:00). Reducing polling frequency to every ${delay / 60000} minutes.`,
+            );
+        } else {
+            this.daikinLogger.debug(`[API Syncing] Scheduling next update in ${delay / ONE_MINUTE} minutes`);
+        }
+
+        this.updateTimeout = setTimeout(async () => {
+            await this.updateDevices();
+            this.scheduleNextUpdate();
         }, delay);
     }
 
     private startUpdateDevicesInterval() {
-        this.daikinLogger.debug(
-            `[API Syncing] (Re)starting update devices interval every ${this.updateIntervalDelay / ONE_MINUTE} minutes`,
-        );
-        this.updateInterval = setInterval(async () => {
-            await this.updateDevices();
-        }, this.updateIntervalDelay);
+        this.scheduleNextUpdate();
     }
 
     private isExcludedDevice(excludedDevicesByDeviceId: Array<string>, deviceId: string): boolean {
