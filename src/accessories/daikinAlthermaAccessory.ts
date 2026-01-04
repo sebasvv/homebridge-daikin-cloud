@@ -33,5 +33,13 @@ export class daikinAlthermaAccessory extends daikinAccessory {
             this.platform.daikinLogger.warn(`[${this.name}] No domestic hot water tank management point found`);
         }
     }
-}
 
+    protected updateState(): void {
+        if (this.service) {
+            this.service.updateState();
+        }
+        if (this.hotWaterTankService) {
+            this.hotWaterTankService.updateState();
+        }
+    }
+}

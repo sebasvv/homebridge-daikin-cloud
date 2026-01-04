@@ -41,22 +41,29 @@ export class daikinAccessory {
             this.platform.daikinLogger.debug(
                 `[API Syncing] Updated ${this.accessory.displayName} (${this.accessory.UUID}), LastUpdated: ${this.accessory.context.device.getLastUpdated()}`,
             );
+            this.updateState();
         });
+    }
+
+    protected updateState(): void {
+        // To be implemented by child classes
     }
 
     printDeviceInfo() {
         this.platform.daikinLogger.info('[Platform] Device found with id: ' + this.accessory.UUID);
         this.platform.daikinLogger.info('[Platform]     id: ' + this.accessory.UUID);
         this.platform.daikinLogger.info('[Platform]     name: ' + this.accessory.displayName);
-        this.platform.daikinLogger.info('[Platform]     last updated: ' + this.accessory.context.device.getLastUpdated());
+        this.platform.daikinLogger.info(
+            '[Platform]     last updated: ' + this.accessory.context.device.getLastUpdated(),
+        );
         this.platform.daikinLogger.info(
             '[Platform]     modelInfo: ' +
-            DaikinCloudRepo.safeGetValue(
-                this.accessory.context.device,
-                this.gatewayManagementPointId,
-                'modelInfo',
-                undefined,
-            ),
+                DaikinCloudRepo.safeGetValue(
+                    this.accessory.context.device,
+                    this.gatewayManagementPointId,
+                    'modelInfo',
+                    undefined,
+                ),
         );
         this.platform.daikinLogger.info(
             '[Platform]     deviceModel: ' + this.accessory.context.device.getDescription().deviceModel,

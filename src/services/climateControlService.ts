@@ -481,4 +481,89 @@ export class ClimateControlService extends BaseService {
     async handleFanOnlyOperationModeSet(value: CharacteristicValue) {
         return this.handlers.handleFanOnlyOperationModeSet(value);
     }
+
+    async updateState() {
+        if (this.service) {
+            this.service.updateCharacteristic(
+                this.platform.Characteristic.Active,
+                await this.handlers.handleActiveStateGet(),
+            );
+            this.service.updateCharacteristic(
+                this.platform.Characteristic.CurrentTemperature,
+                await this.handlers.handleCurrentTemperatureGet(),
+            );
+            this.service.updateCharacteristic(
+                this.platform.Characteristic.TargetHeaterCoolerState,
+                await this.handlers.handleTargetHeaterCoolerStateGet(),
+            );
+
+            if (this.service.testCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)) {
+                this.service.updateCharacteristic(
+                    this.platform.Characteristic.CoolingThresholdTemperature,
+                    await this.handlers.handleCoolingThresholdTemperatureGet(),
+                );
+            }
+            if (this.service.testCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)) {
+                this.service.updateCharacteristic(
+                    this.platform.Characteristic.HeatingThresholdTemperature,
+                    await this.handlers.handleHeatingThresholdTemperatureGet(),
+                );
+            }
+            if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+                this.service.updateCharacteristic(
+                    this.platform.Characteristic.RotationSpeed,
+                    await this.handlers.handleRotationSpeedGet(),
+                );
+            }
+            if (this.service.testCharacteristic(this.platform.Characteristic.SwingMode)) {
+                this.service.updateCharacteristic(
+                    this.platform.Characteristic.SwingMode,
+                    await this.handlers.handleSwingModeGet(),
+                );
+            }
+        }
+
+        if (this.switchServicePowerfulMode) {
+            this.switchServicePowerfulMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handlePowerfulModeGet(),
+            );
+        }
+        if (this.switchServiceEconoMode) {
+            this.switchServiceEconoMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleEconoModeGet(),
+            );
+        }
+        if (this.switchServiceStreamerMode) {
+            this.switchServiceStreamerMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleStreamerModeGet(),
+            );
+        }
+        if (this.switchServiceOutdoorSilentMode) {
+            this.switchServiceOutdoorSilentMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleOutdoorSilentModeGet(),
+            );
+        }
+        if (this.switchServiceIndoorSilentMode) {
+            this.switchServiceIndoorSilentMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleIndoorSilentModeGet(),
+            );
+        }
+        if (this.switchServiceDryOperationMode) {
+            this.switchServiceDryOperationMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleDryOperationModeGet(),
+            );
+        }
+        if (this.switchServiceFanOnlyOperationMode) {
+            this.switchServiceFanOnlyOperationMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleFanOnlyOperationModeGet(),
+            );
+        }
+    }
 }

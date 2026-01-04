@@ -254,4 +254,33 @@ export class HotWaterTankService extends BaseService {
     hasPowerfulModeFeature(): boolean {
         return Boolean(this.getData('powerfulMode', undefined));
     }
+
+    async updateState() {
+        this.hotWaterTankService.updateCharacteristic(
+            this.platform.Characteristic.CurrentHeatingCoolingState,
+            await this.handleHotWaterTankCurrentHeatingCoolingStateGet(),
+        );
+        this.hotWaterTankService.updateCharacteristic(
+            this.platform.Characteristic.CurrentTemperature,
+            await this.handleHotWaterTankCurrentTemperatureGet(),
+        );
+        this.hotWaterTankService.updateCharacteristic(
+            this.platform.Characteristic.TargetHeatingCoolingState,
+            await this.handleHotWaterTankTargetHeatingCoolingStateGet(),
+        );
+
+        if (this.hotWaterTankService.testCharacteristic(this.platform.Characteristic.TargetTemperature)) {
+            this.hotWaterTankService.updateCharacteristic(
+                this.platform.Characteristic.TargetTemperature,
+                await this.handleHotWaterTankHeatingTargetTemperatureGet(),
+            );
+        }
+
+        if (this.switchServicePowerfulMode) {
+            this.switchServicePowerfulMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlePowerfulModeGet(),
+            );
+        }
+    }
 }
