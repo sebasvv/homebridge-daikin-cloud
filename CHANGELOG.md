@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.0.9](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.8...v3.0.9) (2026-01-04)
+
+### Features
+
+- Implement dynamic polling (Night Mode) and active rate limit protection ([ffc7fb9](https://github.com/sebasvv/homebridge-daikin-cloud/commit/ffc7fb9e4ed0d62f8bd2c6698203f3a6c33bda46))
+
+### Bug Fixes
+
+- Resolve 'Powerful Mode' sticky state by implementing active state synchronization ([6f4bfe0](https://github.com/sebasvv/homebridge-daikin-cloud/commit/6f4bfe051f2d17e135debaf10e1364d2f885d328))
+
 ### [3.0.8](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.7...v3.0.8) (2026-01-03)
 
 ### Bug Fixes
