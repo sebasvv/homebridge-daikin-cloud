@@ -335,10 +335,10 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     const homebridgeAccessory = new daikinAirConditioningAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
 
     await homebridgeAccessory.service.handleActiveStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControl', 'onOffMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControl', 'onOffMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleActiveStateSet(0);
-    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControl', 'onOffMode', null, 'off');
+    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControl', 'onOffMode', undefined, 'off');
 
     await homebridgeAccessory.service.handleCoolingThresholdTemperatureSet(21);
     expect(setDataSpy).toHaveBeenNthCalledWith(3, 'climateControl', 'temperatureControl', '/operationModes/cooling/setpoints/roomTemperature', 21);
@@ -351,24 +351,24 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControl', 'temperatureControl', '/operationModes/heating/setpoints/roomTemperature', 25);
 
     await homebridgeAccessory.service.handleTargetHeaterCoolerStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(7, 'climateControl', 'operationMode', null, 'heating');
-    expect(setDataSpy).toHaveBeenNthCalledWith(8, 'climateControl', 'onOffMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(7, 'climateControl', 'operationMode', undefined, 'heating');
+    expect(setDataSpy).toHaveBeenNthCalledWith(8, 'climateControl', 'onOffMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleSwingModeSet(1);
     expect(setDataSpy).toHaveBeenNthCalledWith(9, 'climateControl', 'fanControl', '/operationModes/heating/fanDirection/horizontal/currentMode', 'swing');
     expect(setDataSpy).toHaveBeenNthCalledWith(10, 'climateControl', 'fanControl', '/operationModes/heating/fanDirection/vertical/currentMode', 'swing');
 
     await homebridgeAccessory.service.handlePowerfulModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(11, 'climateControl', 'powerfulMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(11, 'climateControl', 'powerfulMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleEconoModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(12, 'climateControl', 'econoMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(12, 'climateControl', 'econoMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleStreamerModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(13, 'climateControl', 'streamerMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(13, 'climateControl', 'streamerMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleOutdoorSilentModeSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(14, 'climateControl', 'outdoorSilentMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(14, 'climateControl', 'outdoorSilentMode', undefined, 'on');
 
     await homebridgeAccessory.service.handleIndoorSilentModeSet(1);
     expect(setDataSpy).toHaveBeenNthCalledWith(15, 'climateControl', 'fanControl', '/operationModes/heating/fanSpeed/currentMode', 'quiet');

@@ -151,32 +151,32 @@ describe('HotWaterTankService', () => {
             service = new HotWaterTankService(mockPlatform, mockAccessory, 'mp-id');
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(2); // COOL
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.COOLING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.COOLING);
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(1); // HEAT
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.HEATING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.HEATING);
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(3); // AUTO
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.AUTO);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
         });
 
         test('SET OFF turns device off', async () => {
             service = new HotWaterTankService(mockPlatform, mockAccessory, 'mp-id');
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(0); // OFF
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.OFF);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
         });
 
         test('SET COOL/HEAT/AUTO maps correctly', async () => {
             service = new HotWaterTankService(mockPlatform, mockAccessory, 'mp-id');
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(2); // COOL
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.COOLING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.COOLING);
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(1); // HEAT
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.HEATING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.HEATING);
 
             await service.handleHotWaterTankTargetHeatingCoolingStateSet(3); // AUTO
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.AUTO);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
         });
     });
 
@@ -211,6 +211,6 @@ describe('HotWaterTankService', () => {
         expect(await service.handlePowerfulModeGet()).toBe(true);
 
         await service.handlePowerfulModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', null, 'off');
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', undefined, 'off');
     });
 });

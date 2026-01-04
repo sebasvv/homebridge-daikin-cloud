@@ -80,13 +80,13 @@ describe('ClimateControlHandlers', () => {
 
     test('handleActiveStateSet turns ON', async () => {
         await handlers.handleActiveStateSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
         expect(mockForceUpdate).toHaveBeenCalled();
     });
 
     test('handleActiveStateSet turns OFF', async () => {
         await handlers.handleActiveStateSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('handleCurrentTemperatureGet', async () => {
@@ -173,17 +173,17 @@ describe('ClimateControlHandlers', () => {
 
         test('SET COOL', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.COOL);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.COOLING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.COOLING);
         });
 
         test('SET HEAT', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.HEAT);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.HEATING);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.HEATING);
         });
 
         test('SET AUTO', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.AUTO);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.AUTO);
+            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
         });
     });
 
@@ -273,10 +273,10 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handlePowerfulModeGet()).toBe(true);
 
         await handlers.handlePowerfulModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', null, DaikinPowerfulModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.OFF);
 
         await handlers.handlePowerfulModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', null, DaikinPowerfulModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.ON);
     });
 
     test('handleEconoModeGet/Set', async () => {
@@ -284,10 +284,10 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handleEconoModeGet()).toBe(true);
 
         await handlers.handleEconoModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', null, DaikinEconoModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', undefined, DaikinEconoModes.OFF);
 
         await handlers.handleEconoModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', null, DaikinEconoModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', undefined, DaikinEconoModes.ON);
     });
 
     test('handleStreamerModeGet/Set', async () => {
@@ -295,10 +295,10 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handleStreamerModeGet()).toBe(true);
 
         await handlers.handleStreamerModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', null, DaikinStreamerModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', undefined, DaikinStreamerModes.OFF);
 
         await handlers.handleStreamerModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', null, DaikinStreamerModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', undefined, DaikinStreamerModes.ON);
     });
 
     test('handleOutdoorSilentModeGet/Set', async () => {
@@ -306,10 +306,10 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handleOutdoorSilentModeGet()).toBe(true);
 
         await handlers.handleOutdoorSilentModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', null, DaikinOutdoorSilentModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.OFF);
 
         await handlers.handleOutdoorSilentModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', null, DaikinOutdoorSilentModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.ON);
     });
 
     test('handleIndoorSilentModeGet/Set', async () => {
@@ -329,12 +329,12 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handleDryOperationModeGet()).toBe(true);
 
         await handlers.handleDryOperationModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.DRY);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.DRY);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
 
         await handlers.handleDryOperationModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.AUTO);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('handleFanOnlyOperationModeGet/Set', async () => {
@@ -342,12 +342,12 @@ describe('ClimateControlHandlers', () => {
         expect(await handlers.handleFanOnlyOperationModeGet()).toBe(true);
 
         await handlers.handleFanOnlyOperationModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.FAN_ONLY);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.ON);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.FAN_ONLY);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
 
         await handlers.handleFanOnlyOperationModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', null, DaikinOperationModes.AUTO);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', null, DaikinOnOffModes.OFF);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
+        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('safeSetData logs error on failure', async () => {

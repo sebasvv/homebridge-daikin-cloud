@@ -197,7 +197,8 @@ test('Event handling: Authorization Request', (done) => {
 
 test('Event handling: Rate Limit', (done) => {
     const api = new HomebridgeAPI();
-    const logSpy = jest.spyOn(Logger.prototype, 'warn');
+    const warnSpy = jest.spyOn(Logger.prototype, 'warn');
+    const errorSpy = jest.spyOn(Logger.prototype, 'error');
     const debugSpy = jest.spyOn(Logger.prototype, 'debug');
 
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
@@ -205,8 +206,17 @@ test('Event handling: Rate Limit', (done) => {
 
     api.signalFinished();
 
+    // Trigger Warning
     platform.controller.emit('rate_limit_status', {
-        remainingDay: 10,
+        remainingDay: 15,
+        limitDay: 200,
+        remainingMinute: 5,
+        limitMinute: 10,
+    });
+
+    // Trigger Critical
+    platform.controller.emit('rate_limit_status', {
+        remainingDay: 5,
         limitDay: 200,
         remainingMinute: 5,
         limitMinute: 10,
@@ -214,7 +224,11 @@ test('Event handling: Rate Limit', (done) => {
 
     setTimeout(() => {
         // Warn if <= 20
-        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Rate limit almost reached'));
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Rate limit almost reached'));
+
+        // Error if <= 10
+        expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('CRITICAL: Only 5 calls left'));
+
         // Debug always
         expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining('Remaining calls today'));
         done();

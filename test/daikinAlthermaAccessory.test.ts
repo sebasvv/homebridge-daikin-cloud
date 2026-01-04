@@ -269,10 +269,10 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     const homebridgeAccessory = new daikinAlthermaAccessory(new DaikinCloudPlatform(new Logger(), config, api), accessory as unknown as PlatformAccessory<DaikinCloudAccessoryContext>);
 
     await homebridgeAccessory.service?.handleActiveStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControlMainZone', 'onOffMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(1, 'climateControlMainZone', 'onOffMode', undefined, 'on');
 
     await homebridgeAccessory.service?.handleActiveStateSet(0);
-    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControlMainZone', 'onOffMode', null, 'off');
+    expect(setDataSpy).toHaveBeenNthCalledWith(2, 'climateControlMainZone', 'onOffMode', undefined, 'off');
 
     await homebridgeAccessory.service?.handleCoolingThresholdTemperatureSet(21);
     expect(setDataSpy).toHaveBeenNthCalledWith(3, 'climateControlMainZone', 'temperatureControl', '/operationModes/cooling/setpoints/roomTemperature', 21);
@@ -281,21 +281,21 @@ test('DaikinCloudAirConditioningAccessory Setters', async () => {
     expect(setDataSpy).toHaveBeenNthCalledWith(4, 'climateControlMainZone', 'temperatureControl', '/operationModes/heating/setpoints/roomTemperature', 25);
 
     await homebridgeAccessory.service?.handleTargetHeaterCoolerStateSet(1);
-    expect(setDataSpy).toHaveBeenNthCalledWith(5, 'climateControlMainZone', 'operationMode', null, 'heating');
-    expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControlMainZone', 'onOffMode', null, 'on');
+    expect(setDataSpy).toHaveBeenNthCalledWith(5, 'climateControlMainZone', 'operationMode', undefined, 'heating');
+    expect(setDataSpy).toHaveBeenNthCalledWith(6, 'climateControlMainZone', 'onOffMode', undefined, 'on');
 
     if (homebridgeAccessory.hotWaterTankService) {
         await homebridgeAccessory.hotWaterTankService.handleHotWaterTankTargetHeatingCoolingStateSet(0);
-        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', null, 'off');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', undefined, 'off');
 
         await homebridgeAccessory.hotWaterTankService.handleHotWaterTankTargetHeatingCoolingStateSet(1);
-        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', null, 'on');
-        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'operationMode', null, 'heating');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'onOffMode', undefined, 'on');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'operationMode', undefined, 'heating');
 
         await homebridgeAccessory.hotWaterTankService.handlePowerfulModeSet(true);
-        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', null, 'on');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', undefined, 'on');
 
         await homebridgeAccessory.hotWaterTankService.handlePowerfulModeSet(false);
-        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', null, 'off');
+        expect(setDataSpy).toHaveBeenCalledWith('domesticHotWaterTank', 'powerfulMode', undefined, 'off');
     }
 });
