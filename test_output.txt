@@ -1,14 +1,390 @@
 
-> @sebasvv/homebridge-daikin-cloud@2.9.0 test
-> jest test/daikinAirConditioningAccessory.test.ts
+> @sebasvv/homebridge-daikin-cloud@3.0.9 test
+> jest
+
+PASS test/services/logger.test.ts
+  DaikinLogger
+    ✓ should log info with prefix (12 ms)
+    ✓ should log info without prefix (1 ms)
+    ✓ should log with parameters
+    ✓ should log errors
+    debug
+      ✓ should log to info when debugMode is true (1 ms)
+      ✓ should log to debug when debugMode is false (1 ms)
+
+PASS test/services/hotWaterTankService.test.ts
+  HotWaterTankService
+    ✓ constructor sets up services (1 ms)
+    ✓ constructor uses existing service if present
+    ✓ constructor removes service if showExtraFeatures is false
+    ✓ handleHotWaterTankCurrentHeatingCoolingStateGet
+    ✓ handleHotWaterTankHeatingTargetTemperatureSet rounds value (1 ms)
+    ✓ handlePowerfulModeGet/Set
+    TargetHeatingCoolingState
+      ✓ GET returns expected values
+      ✓ SET calls safeSetData for COOL, HEAT, AUTO
+      ✓ SET OFF turns device off
+      ✓ SET COOL/HEAT/AUTO maps correctly (1 ms)
+    getTargetHeatingCoolingStateProps with non-settable data
+      ✓ returns restricted validValues for HEATING
+      ✓ returns restricted validValues for COOLING
+      ✓ returns restricted validValues for AUTO
+
+PASS test/services/APIService.test.ts
+  APIService
+    updateAllDeviceData
+      ✓ should call controller.updateAllDeviceData when no user interaction occurred (3 ms)
+      ✓ should skip update if user interaction happened recently (optimistic UI) (1 ms)
+      ✓ should force update even if debouncing (1 ms)
+      ✓ should allow update after debounce window expires
+    User Interaction Notification
+      ✓ should update the last interaction timestamp
+
+PASS test/repositories/daikinCloudRepo.test.ts
+  DaikinCloudRepo
+    ✓ getData delegates to device
+    ✓ safeGetValue returns value if present
+    ✓ safeGetValue returns default if data missing (1 ms)
+    ✓ safeGetValue returns default if value missing
+    ✓ maskSensitiveCloudDeviceData masks all sensitive fields
+
+PASS test/repository/daikinCloud.test.ts
+  ✓ Clean cloud device data for dx4 device (3 ms)
+  ✓ Clean cloud device data for dx23 device (1 ms)
+  ✓ Clean cloud device data for altherma device (1 ms)
+
+PASS test/utils/strings.test.ts
+  StringUtils
+    mask
+      ✓ should mask string longer than 6 chars
+      ✓ should return replacement for string <= 6 chars
+      ✓ should return replacement for non-string
+    isEmpty
+      ✓ should return true for empty or non-string (1 ms)
+      ✓ should return false for non-empty string
+
+PASS test/accessories/daikinAccessory.test.ts
+  daikinAccessory
+    ✓ should initialize and set characteristics (2 ms)
+    ✓ should handle missing model and serial safely
+    ✓ getEmbeddedIdByManagementPointType should return correctly for single match
+    ✓ getEmbeddedIdByManagementPointType should log error and return null for no match
+    ✓ getEmbeddedIdByManagementPointType should log warn and return null for multiple matches (1 ms)
+    ✓ should register update listener
+
+PASS test/services/climateControlHandlers.test.ts
+  ClimateControlHandlers
+    ✓ handleActiveStateGet returns true when ON (6 ms)
+    ✓ handleActiveStateGet returns false when OFF (1 ms)
+    ✓ handleActiveStateSet turns ON (2 ms)
+    ✓ handleActiveStateSet turns OFF
+    ✓ handleCurrentTemperatureGet
+    ✓ handleCoolingThresholdTemperatureGet (1 ms)
+    ✓ handleCoolingThresholdTemperatureSet
+    ✓ handleRotationSpeedGet (1 ms)
+    ✓ handleRotationSpeedSet
+    ✓ handleHeatingThresholdTemperatureGet (1 ms)
+    ✓ handleHeatingThresholdTemperatureSet (1 ms)
+    ✓ handlePowerfulModeGet/Set (1 ms)
+    ✓ handleEconoModeGet/Set
+    ✓ handleStreamerModeGet/Set
+    ✓ handleOutdoorSilentModeGet/Set
+    ✓ handleIndoorSilentModeGet/Set (1 ms)
+    ✓ handleDryOperationModeGet/Set
+    ✓ handleFanOnlyOperationModeGet/Set
+    ✓ safeSetData logs error on failure
+    TargetHeaterCoolerState
+      ✓ GET returns COOL
+      ✓ GET returns HEAT
+      ✓ GET returns AUTO for DRY (and does NOT update rotation) (1 ms)
+      ✓ GET returns AUTO for unknown (default)
+      ✓ SET COOL (1 ms)
+      ✓ SET HEAT
+      ✓ SET AUTO
+    handleSwingMode
+      ✓ handleVerticalSwingModeGet/Set
+      ✓ handleHorizontalSwingModeGet/Set
+
+FAIL test/services/climateControlService.test.ts
+  ClimateControlService
+    ✕ constructor sets up basics (6 ms)
+    ✕ constructor uses existing service (1 ms)
+    ✕ removes services if features missing or showExtraFeatures false (1 ms)
+    ✕ handles threshold temperatures if data present (2 ms)
+    ✕ removes threshold characteristics if data missing (5 ms)
+    ✕ delegates calls to handlers (2 ms)
+    addOrUpdateCharacteristicRotationSpeed
+      ✕ adds rotation speed if fanControl present (16 ms)
+      ✕ removes rotation speed if fanControl missing (1 ms)
+      ✕ throws error if service not initialized (2 ms)
+
+  ● ClimateControlService › constructor sets up basics
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:83:19)
+
+  ● ClimateControlService › constructor uses existing service
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:90:19)
+
+  ● ClimateControlService › removes services if features missing or showExtraFeatures false
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:101:9)
+
+  ● ClimateControlService › handles threshold temperatures if data present
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:107:19)
+
+  ● ClimateControlService › removes threshold characteristics if data missing
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:113:19)
+
+  ● ClimateControlService › addOrUpdateCharacteristicRotationSpeed › adds rotation speed if fanControl present
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:120:23)
+
+  ● ClimateControlService › addOrUpdateCharacteristicRotationSpeed › removes rotation speed if fanControl missing
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:126:23)
+
+  ● ClimateControlService › addOrUpdateCharacteristicRotationSpeed › throws error if service not initialized
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:132:32)
+
+  ● ClimateControlService › delegates calls to handlers
+
+    TypeError: this.service.testCharacteristic is not a function
+
+       97 |
+       98 |         // Cleanup old RotationSpeed from HeaterCooler
+    >  99 |         if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+          |                          ^
+      100 |             this.service.removeCharacteristic(
+      101 |                 this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+      102 |             );
+
+      at new testCharacteristic (src/services/climateControlService.ts:99:26)
+      at Object.<anonymous> (test/services/climateControlService.test.ts:139:19)
+
+PASS test/daikinDevice.test.ts
+  ✓ Get deviceModel from device %s (3 ms)
+  ✓ Get name from device %s
+  ✓ Get name from device %s
+  ✓ Get tankTemperature from device domesticHotWaterTank (1 ms)
 
   console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [AccessoryManager] Adding new accessory, deviceModel: ["MOCK_VALUE"]
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [AccessoryManager] Adding new accessory, deviceModel: ["MOCK_VALUE"]
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [AccessoryManager] Loading accessory from cache: ["Cached Accesssory"]
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [AccessoryManager] Restoring existing accessory from cache: ["Cached Accesssory"]
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Mar 07 2023 20:01:39 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [AccessoryManager] Device with id cd41154b-34d1-4518-9ffd-6f079bc65eed is excluded, don't add accessory
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+          at Array.forEach (<anonymous>)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Mar 07 2023 20:01:39 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
 
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -21,19 +397,12 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:155:44
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:156:12
-
-  console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
-
-      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -46,19 +415,12 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:155:44
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:156:12
-
-  console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
-
-      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/roomTemperature, value: 25): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -71,19 +433,12 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:155:44
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:156:12
-
-  console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
-
-      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): Error: Value is not writable
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -96,19 +451,12 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:155:44
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:156:12
-
-  console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
-
-      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -121,19 +469,47 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:155:44
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:156:12
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
 
   console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 50a3f1b6-8562-4d63-9c80-82ddfce0d7fd
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 50a3f1b6-8562-4d63-9c80-82ddfce0d7fd
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sat Sep 23 2023 10:24:03 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
 
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [API Syncing] Failed to get cloud devices from Daikin Cloud: Network Error
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -146,16 +522,285 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:277:40
+      at APIService.error [as getCloudDevices] (src/services/APIService.ts:122:35)
+      at AccessoryManager.syncAccessories (src/services/AccessoryManager.ts:35:25)
+      at HomebridgeAPI.<anonymous> (src/platform.ts:60:13)
 
   console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:49:25 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
 
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] 
+                    Please navigate to https://mock.url to start the authorisation flow. If it is the first time you open this url you will need to accept a security warning.
+                    
+                    Important: Make sure your Daikin app Redirect URI is set to https://mock.url in the Daikin Developer Portal.
+
+      18 |
+      19 |     warn(message: string, ...parameters: unknown[]): void {
+    > 20 |         this.logger.warn(this.formatMessage(message, ...parameters));
+         |                     ^
+      21 |     }
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.warn (node_modules/homebridge/src/logger.ts:144:10)
+      at DaikinLogger.warn (src/services/logger.ts:20:21)
+      at DaikinCloudController.warn (src/services/APIService.ts:54:31)
+      at Object.<anonymous> (test/platform.test.ts:190:36)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:49:25 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:47:18 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A8x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx23
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:47:18 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A8x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx23
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.warn
+    [NAME_FOR_TEST@@Cooling Threshold Temperature] characteristic was supplied illegal value: number 0 exceeded minimum of 10
+
+      184 |             this.service
+      185 |                 .getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+    > 186 |                 .updateValue((roomTemperatureControlForCooling.value as CharacteristicValue) ?? 25)
+          |                  ^
+      187 |                 .setProps({
+      188 |                     minStep: roomTemperatureControlForCooling.stepValue ?? 0.5,
+      189 |                     minValue: roomTemperatureControlForCooling.minValue ?? 10,
+
+      at Accessory.Object.<anonymous>.Accessory.handleCharacteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Accessory.ts:2065:17)
+      at HeaterCooler.Object.<anonymous>.Service.emitCharacteristicWarningEvent (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Service.ts:1013:10)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.characteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:3037:10)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.validateUserInput (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2948:14)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.updateValue (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2350:20)
+      at new updateValue (src/services/climateControlService.ts:186:18)
+      at new daikinAlthermaAccessory (src/accessories/daikinAlthermaAccessory.ts:21:28)
+      at test/daikinAlthermaAccessory.test.ts:173:9
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
+      at test/daikinAlthermaAccessory.test.ts:174:12
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6255429d-b85e-4210-931d-433855d48373
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6255429d-b85e-4210-931d-433855d48373
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 50a3f1b6-8562-4d63-9c80-82ddfce0d7fd
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Oct 22 2024 10:47:34 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 50a3f1b6-8562-4d63-9c80-82ddfce0d7fd
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069B4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx23
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sat Sep 23 2023 10:24:03 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6255429d-b85e-4210-931d-433855d48373
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6255429d-b85e-4210-931d-433855d48373
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -168,16 +813,34 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at test/daikinAirConditioningAccessory.test.ts:277:40
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [Rate Limit] WARNING: Rate limit almost reached, you only have 15 calls left today
+
+      18 |
+      19 |     warn(message: string, ...parameters: unknown[]): void {
+    > 20 |         this.logger.warn(this.formatMessage(message, ...parameters));
+         |                     ^
+      21 |     }
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.warn (node_modules/homebridge/src/logger.ts:144:10)
+      at DaikinLogger.warn (src/services/logger.ts:20:21)
+      at DaikinCloudController.warn (src/services/APIService.ts:69:39)
+      at Object.<anonymous> (test/platform.test.ts:210:36)
 
   console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Oct 22 2024 10:47:34 GMT+0200 (Central European Summer Time)
 
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -190,16 +853,17 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at Object.<anonymous> (test/daikinAirConditioningAccessory.test.ts:302:68)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
 
   console.log
-    [1/2/2026, 2:53:52 PM] --- Daikin info for debugging reasons (enable Debug Mode for more logs) ---
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069B4x
 
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
   console.error
-    [1/2/2026, 2:53:52 PM] Invalid configuration: [{"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}]
+    [1/5/2026, 2:25:03 PM] [Rate Limit] CRITICAL: Only 5 calls left today. Stopping polling to preserve ability to control devices manually.
 
       22 |
       23 |     error(message: string, ...parameters: unknown[]): void {
@@ -212,157 +876,1572 @@
       at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
       at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
       at DaikinLogger.error (src/services/logger.ts:24:21)
-      at new DaikinCloudPlatform (src/platform.ts:64:31)
-      at Object.<anonymous> (test/daikinAirConditioningAccessory.test.ts:335:68)
+      at DaikinCloudController.error (src/services/APIService.ts:64:39)
+      at Object.<anonymous> (test/platform.test.ts:218:36)
 
-FAIL test/daikinAirConditioningAccessory.test.ts
-  ✕ Create DaikinCloudAirConditioningAccessory with dx4 device (23 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with dx23 device (2 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with dx23-2 device (1 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with unknown device (2 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with unknown2 device (2 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with dx4 device, showExtraFeatures disabled (1 ms)
-  ✕ Create DaikinCloudAirConditioningAccessory with dx23 device, showExtraFeatures disabled (1 ms)
-  ✕ DaikinCloudAirConditioningAccessory Getters (1 ms)
-  ✕ DaikinCloudAirConditioningAccessory Setters (1 ms)
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/leavingWaterOffset, value: 21): Error: Value (21) must not be bigger then 10
 
-  ● Create DaikinCloudAirConditioningAccessory with dx4 device
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
-    expect(received).not.toThrow()
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
 
-    Error name:    "Error"
-    Error message: "Invalid Validation Configuration: {\"_errors\":[],\"callbackServerPort\":{\"_errors\":[\"Invalid input: expected number, received NaN\"]}}"
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx23
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:132:77
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/leavingWaterOffset, value: 25): Error: Value (25) must not be bigger then 10
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 65ef9f3f-19c8-4fb8-ad56-5d8ea1366cde
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 65ef9f3f-19c8-4fb8-ad56-5d8ea1366cde
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Jan 24 2024 20:56:47 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C5x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sat Aug 10 2024 20:55:05 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A62
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 65ef9f3f-19c8-4fb8-ad56-5d8ea1366cde
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 65ef9f3f-19c8-4fb8-ad56-5d8ea1366cde
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Jan 24 2024 20:56:47 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C5x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sat Aug 10 2024 20:55:05 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A62
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: ff8a2e35-39a4-42f7-ba7b-e4f83b103038
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: ff8a2e35-39a4-42f7-ba7b-e4f83b103038
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/roomTemperature, value: 21): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/roomTemperature, value: 25): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Jan 24 2024 20:56:06 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C5x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: ff8a2e35-39a4-42f7-ba7b-e4f83b103038
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: ff8a2e35-39a4-42f7-ba7b-e4f83b103038
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Aug 13 2024 00:06:30 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A62
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Jan 24 2024 20:56:06 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C5x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7cbf1b9f-5638-40d9-b163-1cb28ebe07ff
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Aug 13 2024 00:06:30 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A62
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [API Syncing] Failed to get cloud devices from Daikin Cloud: invalid_grant
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at APIService.error [as getCloudDevices] (src/services/APIService.ts:122:35)
+      at AccessoryManager.syncAccessories (src/services/AccessoryManager.ts:35:25)
+      at HomebridgeAPI.<anonymous> (src/platform.ts:60:13)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:49:25 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [API Syncing] TokenSet is invalid, removing TokenSet file
+
+      18 |
+      19 |     warn(message: string, ...parameters: unknown[]): void {
+    > 20 |         this.logger.warn(this.formatMessage(message, ...parameters));
+         |                     ^
+      21 |     }
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.warn (node_modules/homebridge/src/logger.ts:144:10)
+      at DaikinLogger.warn (src/services/logger.ts:20:21)
+      at APIService.warn [as onInvalidGrantError] (src/services/APIService.ts:174:27)
+      at APIService.onInvalidGrantError [as getCloudDevices] (src/services/APIService.ts:125:32)
+      at AccessoryManager.syncAccessories (src/services/AccessoryManager.ts:35:25)
+      at HomebridgeAPI.<anonymous> (src/platform.ts:60:13)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/roomTemperature, value: 21): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [API Syncing] TokenSet file could not be removed, remove it manually. Location:  ["/Users/sebasvv/.homebridge/.daikin-controller-cloud-tokenset",{"errno":-2,"code":"ENOENT","syscall":"unlink","path":"/Users/sebasvv/.homebridge/.daikin-controller-cloud-tokenset"}]
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at APIService.error [as onInvalidGrantError] (src/services/APIService.ts:181:31)
+      at APIService.getCloudDevices (src/services/APIService.ts:125:21)
+      at AccessoryManager.syncAccessories (src/services/AccessoryManager.ts:35:25)
+      at HomebridgeAPI.<anonymous> (src/platform.ts:60:13)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/roomTemperature, value: 25): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 7c127759-fcd8-449b-b914-cfd451c8de74
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 3d5f2716-988f-42c5-bfb4-2100b949c5db
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:47:18 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 3d5f2716-988f-42c5-bfb4-2100b949c5db
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A8x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx23
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sun Aug 18 2024 15:31:41 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: Zolder
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 3d5f2716-988f-42c5-bfb4-2100b949c5db
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:49:25 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 3d5f2716-988f-42c5-bfb4-2100b949c5db
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Sun Aug 18 2024 15:31:41 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+PASS test/hotWaterTankService.test.ts
+  HotWaterTankService
+    ✓ should get the current heating cooling state (31 ms)
+    ✓ should get the current temperature (2 ms)
+    ✓ should get the target heating cooling temperature (1 ms)
+    ✓ should get the target heating cooling state (1 ms)
+    ✓ should get the powerful mode
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/leavingWaterTemperature, value: 21): Error: Value is not writable
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/leavingWaterOffset, value: 25): Error: Value (25) must not be bigger then 10
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 6ab12a3e-5a4f-4a7e-a1b6-86227209b3f9
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: Zolder
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed May 04 2022 12:49:25 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069C4x
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: dx4
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: da39a3ee-5e6b-44b0-9325-5bfef9560189
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: da39a3ee-5e6b-44b0-9325-5bfef9560189
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Oct 02 2024 11:29:40 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.warn
+    [NAME_FOR_TEST@@Cooling Threshold Temperature] characteristic was supplied illegal value: number 0 exceeded minimum of 10
+
+      184 |             this.service
+      185 |                 .getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+    > 186 |                 .updateValue((roomTemperatureControlForCooling.value as CharacteristicValue) ?? 25)
+          |                  ^
+      187 |                 .setProps({
+      188 |                     minStep: roomTemperatureControlForCooling.stepValue ?? 0.5,
+      189 |                     minValue: roomTemperatureControlForCooling.minValue ?? 10,
+
+      at Accessory.Object.<anonymous>.Accessory.handleCharacteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Accessory.ts:2065:17)
+      at HeaterCooler.Object.<anonymous>.Service.emitCharacteristicWarningEvent (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Service.ts:1013:10)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.characteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:3037:10)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.validateUserInput (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2948:14)
+      at CoolingThresholdTemperature.Object.<anonymous>.Characteristic.updateValue (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2350:20)
+      at new updateValue (src/services/climateControlService.ts:186:18)
+      at new daikinAlthermaAccessory (src/accessories/daikinAlthermaAccessory.ts:21:28)
+      at test/daikinAlthermaAccessory.test.ts:173:9
       at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
       at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:133:12
-      at test/daikinAirConditioningAccessory.test.ts:133:12
+      at test/daikinAlthermaAccessory.test.ts:174:12
 
-  ● Create DaikinCloudAirConditioningAccessory with dx23 device
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
 
-    expect(received).not.toThrow()
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-    Error name:    "Error"
-    Error message: "Invalid Validation Configuration: {\"_errors\":[],\"callbackServerPort\":{\"_errors\":[\"Invalid input: expected number, received NaN\"]}}"
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: da39a3ee-5e6b-44b0-9325-5bfef9560189
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:132:77
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: da39a3ee-5e6b-44b0-9325-5bfef9560189
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Wed Oct 02 2024 11:29:40 GMT+0200 (Central European Summer Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/leavingWaterOffset, value: 21): Error: Value (21) must not be bigger then 10
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/leavingWaterOffset, value: 25): Error: Value (25) must not be bigger then 10
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: bafa50f0-f469-4935-a355-f456d664d3da
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: bafa50f0-f469-4935-a355-f456d664d3da
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Thu Jan 23 2025 13:31:19 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+PASS test/daikinAirConditioningAccessory.test.ts
+  ✓ Create DaikinCloudAirConditioningAccessory with dx4 device (40 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with dx23 device (6 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with dx23-2 device (5 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with unknown device (5 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with unknown2 device (6 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with dx4 device, showExtraFeatures disabled (3 ms)
+  ✓ Create DaikinCloudAirConditioningAccessory with dx23 device, showExtraFeatures disabled (3 ms)
+  ✓ DaikinCloudAirConditioningAccessory Getters (2 ms)
+  ✓ DaikinCloudAirConditioningAccessory Setters (3 ms)
+
+  console.warn
+    [NAME_FOR_TEST@@Heating Threshold Temperature] characteristic was supplied illegal value: number 45 exceeded maximum of 25
+
+      205 |             this.service
+      206 |                 .getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+    > 207 |                 .updateValue((roomTemperatureControlForHeating.value as CharacteristicValue) ?? 20)
+          |                  ^
+      208 |                 .setProps({
+      209 |                     minStep: roomTemperatureControlForHeating.stepValue ?? 0.5,
+      210 |                     minValue: roomTemperatureControlForHeating.minValue ?? 10,
+
+      at Accessory.Object.<anonymous>.Accessory.handleCharacteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Accessory.ts:2065:17)
+      at HeaterCooler.Object.<anonymous>.Service.emitCharacteristicWarningEvent (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Service.ts:1013:10)
+      at HeatingThresholdTemperature.Object.<anonymous>.Characteristic.characteristicWarning (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:3037:10)
+      at HeatingThresholdTemperature.Object.<anonymous>.Characteristic.validateUserInput (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2952:14)
+      at HeatingThresholdTemperature.Object.<anonymous>.Characteristic.updateValue (node_modules/homebridge/node_modules/hap-nodejs/src/lib/Characteristic.ts:2350:20)
+      at new updateValue (src/services/climateControlService.ts:207:18)
+      at new daikinAlthermaAccessory (src/accessories/daikinAlthermaAccessory.ts:21:28)
+      at test/daikinAlthermaAccessory.test.ts:173:9
       at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
       at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:133:12
-      at test/daikinAirConditioningAccessory.test.ts:133:12
+      at test/daikinAlthermaAccessory.test.ts:174:12
 
-  ● Create DaikinCloudAirConditioningAccessory with dx23-2 device
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
 
-    expect(received).not.toThrow()
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-    Error name:    "Error"
-    Error message: "Invalid Validation Configuration: {\"_errors\":[],\"callbackServerPort\":{\"_errors\":[\"Invalid input: expected number, received NaN\"]}}"
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: bafa50f0-f469-4935-a355-f456d664d3da
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:132:77
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:133:12
-      at test/daikinAirConditioningAccessory.test.ts:133:12
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-  ● Create DaikinCloudAirConditioningAccessory with unknown device
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: bafa50f0-f469-4935-a355-f456d664d3da
 
-    expect(received).not.toThrow()
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-    Error name:    "Error"
-    Error message: "Invalid Validation Configuration: {\"_errors\":[],\"callbackServerPort\":{\"_errors\":[\"Invalid input: expected number, received NaN\"]}}"
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: NAME_FOR_TEST
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:132:77
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:133:12
-      at test/daikinAirConditioningAccessory.test.ts:133:12
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-  ● Create DaikinCloudAirConditioningAccessory with unknown2 device
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Thu Jan 23 2025 13:31:19 GMT+0100 (Central European Standard Time)
 
-    expect(received).not.toThrow()
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-    Error name:    "Error"
-    Error message: "Invalid Validation Configuration: {\"_errors\":[],\"callbackServerPort\":{\"_errors\":[\"Invalid input: expected number, received NaN\"]}}"
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:132:77
-      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
-      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
-      at test/daikinAirConditioningAccessory.test.ts:133:12
-      at test/daikinAirConditioningAccessory.test.ts:133:12
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
-  ● Create DaikinCloudAirConditioningAccessory with dx4 device, showExtraFeatures disabled
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
 
-    Invalid Validation Configuration: {"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
 
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:231:73
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:182:13
 
-  ● Create DaikinCloudAirConditioningAccessory with dx23 device, showExtraFeatures disabled
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "off"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
-    Invalid Validation Configuration: {"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleActiveStateSet (src/services/climateControlHandlers.ts:70:9)
+      at test/daikinAlthermaAccessory.test.ts:185:13
 
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/cooling/setpoints/leavingWaterTemperature, value: 21): Error: Value is not writable
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at test/daikinAirConditioningAccessory.test.ts:231:73
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
-  ● DaikinCloudAirConditioningAccessory Getters
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleCoolingThresholdTemperatureSet (src/services/climateControlHandlers.ts:98:9)
+      at test/daikinAlthermaAccessory.test.ts:194:13
 
-    Invalid Validation Configuration: {"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for temperatureControl (path: /operationModes/heating/setpoints/leavingWaterTemperature, value: 25): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleHeatingThresholdTemperatureSet (src/services/climateControlHandlers.ts:257:9)
+      at test/daikinAlthermaAccessory.test.ts:201:13
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at Object.<anonymous> (test/daikinAirConditioningAccessory.test.ts:248:101)
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for operationMode (path: undefined, value: "heating"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
-  ● DaikinCloudAirConditioningAccessory Setters
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
-    Invalid Validation Configuration: {"_errors":[],"callbackServerPort":{"_errors":["Invalid input: expected number, received NaN"]}}
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:303:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
 
+  console.error
+    [1/5/2026, 2:25:03 PM] [NAME_FOR_TEST] Error setting data for onOffMode (path: undefined, value: "on"): TypeError: Cannot read properties of undefined (reading 'requestResource')
 
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
 
-      at new DaikinCloudPlatform (src/platform.ts:2631:13)
-      at Object.<anonymous> (test/daikinAirConditioningAccessory.test.ts:274:101)
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at ClimateControlHandlers.error [as safeSetData] (src/services/climateControlHandlers.ts:30:40)
+      at ClimateControlHandlers.handleTargetHeaterCoolerStateSet (src/services/climateControlHandlers.ts:304:9)
+      at test/daikinAlthermaAccessory.test.ts:208:13
 
-------------------------------------|---------|----------|---------|---------|-------------------
-File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-------------------------------------|---------|----------|---------|---------|-------------------
-All files                           |   15.49 |    10.71 |      12 |    15.7 |                   
- src                                |   22.95 |     3.44 |    4.16 |   23.33 |                   
-  config.ts                         |     100 |      100 |     100 |     100 |                   
-  index.ts                          |       0 |      100 |       0 |       0 | 3-10              
-  platform.ts                       |   21.05 |     3.44 |    4.34 |   21.42 | 71-295            
-  settings.ts                       |     100 |      100 |     100 |     100 |                   
- src/accessories                    |   19.56 |        0 |       0 |   19.56 |                   
-  daikinAccessory.ts                |    8.33 |        0 |       0 |    8.33 | 10-85             
-  daikinAirConditioningAccessory.ts |    37.5 |        0 |       0 |    37.5 | 10-17             
-  daikinAlthermaAccessory.ts        |   28.57 |        0 |       0 |   28.57 | 13-33             
- src/repositories                   |    4.76 |        0 |       0 |    7.14 |                   
-  daikinCloudRepo.ts                |    4.76 |        0 |       0 |    7.14 | 39-66             
- src/services                       |   13.81 |    12.71 |   15.04 |   13.81 |                   
-  baseService.ts                    |   82.35 |    81.48 |   68.75 |   82.35 | 7-39              
-  climateControlHandlers.ts         |     1.5 |        0 |       0 |     1.5 | 19-353            
-  climateControlHelper.ts           |    9.72 |     7.14 |    5.26 |    9.72 | 19-179            
-  climateControlService.ts          |    3.05 |        0 |       0 |    3.05 | 8-482             
-  hotWaterTankService.ts            |    2.32 |        0 |       0 |    2.32 | 6-255             
-  logger.ts                         |   83.33 |    71.42 |   83.33 |   83.33 | 20,29             
- src/utils                          |      10 |        0 |       0 |      10 |                   
-  strings.ts                        |      10 |        0 |       0 |      10 | 3-20              
-------------------------------------|---------|----------|---------|---------|-------------------
-Jest: "global" coverage threshold for statements (80%) not met: 15.49%
-Jest: "global" coverage threshold for branches (71%) not met: 10.71%
-Jest: "global" coverage threshold for lines (80%) not met: 15.7%
-Jest: "global" coverage threshold for functions (80%) not met: 12%
-Test Suites: 1 failed, 1 total
-Tests:       9 failed, 9 total
-Snapshots:   0 total
-Time:        1.26 s
-Ran all test suites matching /test\/daikinAirConditioningAccessory.test.ts/i.
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Mar 07 2023 20:01:39 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] --- Daikin Cloud Plugin Initialized ---
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform] Device found with id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     id: 9c7df462-88c1-4bb1-9de0-cd08f24067a3
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     name: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     last updated: Tue Mar 07 2023 20:01:39 GMT+0100 (Central European Standard Time)
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     modelInfo: BRP069A78
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+  console.log
+    [1/5/2026, 2:25:03 PM] [Platform]     deviceModel: Altherma
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+
+PASS test/platform.test.ts
+  ✓ Initialize platform (33 ms)
+  ✓ DaikinCloudPlatform with new Aircondition accessory (13 ms)
+  ✓ DaikinCloudPlatform with new Altherma accessory (12 ms)
+  ✓ Restore existing accessory (13 ms)
+  ✓ Handle excluded device (12 ms)
+  ✓ API Error handling (Generic) (12 ms)
+  ✓ Event handling: Authorization Request (13 ms)
+  ✓ Event handling: Rate Limit (13 ms)
+  ✓ Invalid Grant Error Handling (52 ms)
+
+PASS test/daikinAlthermaAccessory.test.ts
+  ✓ Create DaikinCloudThermostatAccessory with altherma device (59 ms)
+  ✓ Create DaikinCloudThermostatAccessory with altherma device (28 ms)
+  ✓ Create DaikinCloudThermostatAccessory with altherma2 device (7 ms)
+  ✓ Create DaikinCloudThermostatAccessory with altherma3 device (6 ms)
+  ✓ Create DaikinCloudThermostatAccessory with altherma4 device (7 ms)
+  ✓ Create DaikinCloudThermostatAccessory with althermaFraction device (19 ms)
+  ✓ Create DaikinCloudThermostatAccessory with althermaMiladcerkic device (7 ms)
+  ✓ DaikinCloudAirConditioningAccessory Getters (3 ms)
+  ✓ DaikinCloudAirConditioningAccessory Setters (3 ms)
+
+  console.error
+    [1/5/2026, 2:25:04 PM] [API Syncing] Failed to update devices data: {"errno":-3008,"code":"ENOTFOUND","syscall":"getaddrinfo","hostname":"SERVER_BIND_ADDRESS"}
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at APIService.updateAllDeviceData (src/services/APIService.ts:2578:27)
+
+  console.error
+    [1/5/2026, 2:25:04 PM] [API Syncing] Failed to update devices data: {"errno":-3008,"code":"ENOTFOUND","syscall":"getaddrinfo","hostname":"SERVER_BIND_ADDRESS"}
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at APIService.updateAllDeviceData (src/services/APIService.ts:2578:27)
+
+  console.error
+    [1/5/2026, 2:25:04 PM] [API Syncing] Failed to update devices data: {"errno":-3008,"code":"ENOTFOUND","syscall":"getaddrinfo","hostname":"SERVER_BIND_ADDRESS"}
+
+      22 |
+      23 |     error(message: string, ...parameters: unknown[]): void {
+    > 24 |         this.logger.error(this.formatMessage(message, ...parameters));
+         |                     ^
+      25 |     }
+      26 |
+      27 |     debug(message: string, ...parameters: unknown[]): void {
+
+      at Logger.log (node_modules/homebridge/src/logger.ts:189:5)
+      at Logger.error (node_modules/homebridge/src/logger.ts:148:10)
+      at DaikinLogger.error (src/services/logger.ts:24:21)
+      at APIService.updateAllDeviceData (src/services/APIService.ts:2578:27)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+------------------------------------|---------|----------|---------|---------|---------------------------------------------------------
+File                                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                       
+------------------------------------|---------|----------|---------|---------|---------------------------------------------------------
+All files                           |    80.3 |    71.58 |   86.11 |   80.28 |                                                         
+ src                                |      75 |      100 |   83.33 |      75 |                                                         
+  config.ts                         |       0 |      100 |     100 |       0 | 1-3                                                     
+  index.ts                          |       0 |      100 |       0 |       0 | 3-10                                                    
+  platform.ts                       |   91.66 |      100 |     100 |   91.66 | 36-37                                                   
+  settings.ts                       |     100 |      100 |     100 |     100 |                                                         
+ src/accessories                    |   84.61 |    44.44 |      80 |   84.61 |                                                         
+  daikinAccessory.ts                |     100 |      100 |     100 |     100 |                                                         
+  daikinAirConditioningAccessory.ts |   77.77 |        0 |      50 |   77.77 | 14,21                                                   
+  daikinAlthermaAccessory.ts        |   66.66 |    33.33 |      50 |   66.66 | 23,33-42                                                
+ src/homebridge-ui                  |       0 |        0 |       0 |       0 |                                                         
+  server.ts                         |       0 |        0 |       0 |       0 | 1-74                                                    
+ src/repositories                   |     100 |      100 |     100 |     100 |                                                         
+  daikinCloudRepo.ts                |     100 |      100 |     100 |     100 |                                                         
+ src/services                       |   81.17 |    71.88 |   89.47 |   81.14 |                                                         
+  APIService.ts                     |   80.21 |    59.37 |   94.73 |   80.21 | 89-90,114,118,128,146-154,177,198,204,208,219,227-228   
+  AccessoryManager.ts               |   86.66 |     62.5 |     100 |   86.44 | 66-69,105-108,127                                       
+  ConfigService.ts                  |   84.61 |        0 |     100 |   84.61 | 32-33                                                   
+  DaikinAPIError.ts                 |    7.14 |        0 |       0 |    7.14 | 6-32                                                    
+  baseService.ts                    |   98.18 |    92.59 |     100 |   98.18 | 34                                                      
+  climateControlHandlers.ts         |   82.38 |    73.21 |   82.05 |   82.38 | 43-56,108-162,172,188,196-198,211,213,217,219           
+  climateControlService.ts          |    72.9 |    68.59 |      88 |    72.9 | 100,132-135,143,156-163,230,261,293,467,500,586,594-721 
+  hotWaterTankService.ts            |   92.47 |     90.9 |   91.66 |   92.47 | 261-282                                                 
+  logger.ts                         |     100 |      100 |     100 |     100 |                                                         
+ src/utils                          |   83.33 |    77.77 |    82.6 |   83.33 |                                                         
+  DaikinDeviceWrapper.ts            |   80.35 |    73.91 |   80.95 |   80.35 | 31-45,69-70,85,110,171                                  
+  strings.ts                        |     100 |      100 |     100 |     100 |                                                         
+------------------------------------|---------|----------|---------|---------|---------------------------------------------------------
+Jest: "global" coverage threshold for branches (90%) not met: 71.58%
+Test Suites: 1 failed, 13 passed, 14 total
+Tests:       9 failed, 107 passed, 116 total
+Snapshots:   3 passed, 3 total
+Time:        4.203 s
+Ran all test suites.

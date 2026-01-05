@@ -67,6 +67,7 @@ const mockService = {
     setCharacteristic: jest.fn().mockReturnThis(),
     addOptionalCharacteristic: jest.fn().mockReturnThis(),
     removeCharacteristic: jest.fn().mockReturnThis(),
+    testCharacteristic: jest.fn().mockReturnValue(true),
 } as unknown as Service;
 
 describe('ClimateControlService', () => {
@@ -114,26 +115,6 @@ describe('ClimateControlService', () => {
         expect(mockService.removeCharacteristic).toHaveBeenCalledWith(mockCharacteristic);
     });
 
-    describe('addOrUpdateCharacteristicRotationSpeed', () => {
-        test('adds rotation speed if fanControl present', () => {
-            (mockDevice.getData as jest.Mock).mockReturnValue({ value: 5 });
-            service = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id');
-            expect(mockService.getCharacteristic).toHaveBeenCalledWith('RotationSpeed');
-        });
-
-        test('removes rotation speed if fanControl missing', () => {
-            (mockDevice.getData as jest.Mock).mockReturnValue(undefined);
-            service = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id');
-            expect(mockService.removeCharacteristic).toHaveBeenCalledWith(mockCharacteristic);
-        });
-
-        test('throws error if service not initialized', () => {
-            // This is hard to trigger via normal constructor but we can try to force it
-            const serviceAny = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id') as any;
-            serviceAny.service = undefined;
-            expect(() => serviceAny.addOrUpdateCharacteristicRotationSpeed()).toThrow('Service not initialized');
-        });
-    });
 
     test('delegates calls to handlers', async () => {
         service = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id');
