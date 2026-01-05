@@ -45,11 +45,13 @@ export class HotWaterTankService extends BaseService {
         if (temperatureControl) {
             targetTemperature
                 .setProps({
-                    minStep: temperatureControl.stepValue ?? 1,
-                    minValue: temperatureControl.minValue ?? 10,
                     maxValue: temperatureControl.maxValue ?? 60,
                 })
                 .updateValue((temperatureControl.value as CharacteristicValue) ?? temperatureControl.minValue ?? 45)
+                .setProps({
+                    minStep: temperatureControl.stepValue ?? 1,
+                    minValue: temperatureControl.minValue ?? 10,
+                })
                 .onGet(this.handleHotWaterTankHeatingTargetTemperatureGet.bind(this))
                 .onSet(this.handleHotWaterTankHeatingTargetTemperatureSet.bind(this));
         }

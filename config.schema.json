@@ -45,7 +45,7 @@
                 "type": "boolean",
                 "required": false,
                 "default": false,
-                "description": "Expose extra advanced features as streamer mode, econo mode and powerful mode. They will only appear when they are also supported by your device."
+                "description": "Expose extra advanced features such as Vertical/Horizontal Swing, Powerful, Econo, Streamer, Outdoor/Indoor Silent, Dry, and Fan Only modes. They will only appear if supported by your device."
             },
             "excludedDevicesByDeviceId": {
                 "title": "Exclude specific devices",

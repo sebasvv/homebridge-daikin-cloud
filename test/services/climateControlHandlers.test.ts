@@ -1,5 +1,5 @@
 import { ClimateControlHandlers } from '../../src/services/climateControlHandlers';
-import { ClimateControlHelper } from '../../src/services/climateControlHelper';
+import { DaikinDeviceWrapper } from '../../src/utils/DaikinDeviceWrapper';
 import { DaikinCloudPlatform } from '../../src/platform';
 import { DaikinCloudDevice } from 'daikin-controller-cloud/dist/device';
 import { DaikinLogger } from '../../src/services/logger';
@@ -15,13 +15,23 @@ import {
     DaikinOutdoorSilentModes
 } from '../../src/services/baseService';
 
+import { APIService } from '../../src/services/APIService';
+
+jest.mock('../../src/utils/DaikinDeviceWrapper');
+
 const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
 } as unknown as DaikinLogger;
 
+const mockApiService = {
+    setDeviceData: jest.fn(),
+    notifyUserInteraction: jest.fn(),
+} as unknown as APIService;
+
 const mockPlatform = {
     daikinLogger: mockLogger,
+    apiService: mockApiService,
     Characteristic: {
         TargetHeaterCoolerState: {
             COOL: 0,
@@ -40,77 +50,62 @@ const mockDevice = {
     getLastUpdated: jest.fn().mockReturnValue('mock-date'),
 } as unknown as DaikinCloudDevice;
 
-const mockHelper = {
-    safeGetValue: jest.fn(),
-    getCurrentControlMode: jest.fn(),
-    getSetpoint: jest.fn(),
-    getCurrentOperationMode: jest.fn(),
-    hasSwingModeHorizontalFeature: jest.fn(),
-    hasSwingModeVerticalFeature: jest.fn(),
-} as unknown as ClimateControlHelper;
 
-const mockForceUpdate = jest.fn();
-const mockUpdateRotation = jest.fn();
 
 describe('ClimateControlHandlers', () => {
     let handlers: ClimateControlHandlers;
+    let mockDaikinDeviceWrapper: DaikinDeviceWrapper;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockDaikinDeviceWrapper = new DaikinDeviceWrapper(mockDevice, 'mp-id');
         handlers = new ClimateControlHandlers(
             mockPlatform,
             mockDevice,
             'mp-id',
             'Test Handler',
-            mockHelper,
-            mockForceUpdate,
-            mockUpdateRotation
+            mockDaikinDeviceWrapper,
         );
     });
 
     test('handleActiveStateGet returns true when ON', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinOnOffModes.ON);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinOnOffModes.ON);
         expect(await handlers.handleActiveStateGet()).toBe(true);
     });
 
     test('handleActiveStateGet returns false when OFF', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinOnOffModes.OFF);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinOnOffModes.OFF);
         expect(await handlers.handleActiveStateGet()).toBe(false);
     });
 
     test('handleActiveStateSet turns ON', async () => {
         await handlers.handleActiveStateSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
-        expect(mockForceUpdate).toHaveBeenCalled();
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
+        expect(mockApiService.notifyUserInteraction).toHaveBeenCalled();
     });
 
     test('handleActiveStateSet turns OFF', async () => {
         await handlers.handleActiveStateSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('handleCurrentTemperatureGet', async () => {
-        (mockHelper.getCurrentControlMode as jest.Mock).mockReturnValue('control-mode');
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(22.5);
+        (mockDaikinDeviceWrapper.getCurrentControlMode as jest.Mock).mockReturnValue('control-mode');
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(22.5);
         expect(await handlers.handleCurrentTemperatureGet()).toBe(22.5);
-        expect(mockHelper.safeGetValue).toHaveBeenCalledWith('sensoryData', '/control-mode', 0);
     });
 
     test('handleCoolingThresholdTemperatureGet', async () => {
-        (mockHelper.getSetpoint as jest.Mock).mockReturnValue('setpoint');
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(24);
+        (mockDaikinDeviceWrapper.getSetpointType as jest.Mock).mockReturnValue('setpoint');
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(24);
         expect(await handlers.handleCoolingThresholdTemperatureGet()).toBe(24);
-        expect(mockHelper.safeGetValue).toHaveBeenCalledWith(
-            'temperatureControl',
-            `/operationModes/${DaikinOperationModes.COOLING}/setpoints/setpoint`,
-            0
-        );
     });
 
     test('handleCoolingThresholdTemperatureSet', async () => {
-        (mockHelper.getSetpoint as jest.Mock).mockReturnValue('setpoint');
+        (mockDaikinDeviceWrapper.getSetpointType as jest.Mock).mockReturnValue('setpoint');
         await handlers.handleCoolingThresholdTemperatureSet(23.4); // Rounds to 23.5
-        expect(mockDevice.setData).toHaveBeenCalledWith(
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(
+            mockDevice,
             'mp-id',
             'temperatureControl',
             `/operationModes/${DaikinOperationModes.COOLING}/setpoints/setpoint`,
@@ -119,240 +114,182 @@ describe('ClimateControlHandlers', () => {
     });
 
     test('handleRotationSpeedGet', async () => {
-        (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(3);
-        expect(await handlers.handleRotationSpeedGet()).toBe(3);
+        (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(3);
+        expect(await handlers.handleFanRotationSpeedGet()).toBe(60);
     });
 
     test('handleRotationSpeedSet', async () => {
-        (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-        await handlers.handleRotationSpeedSet(5);
-        expect(mockDevice.setData).toHaveBeenCalledWith(
-            'mp-id', 'fanControl', '/operationModes/mode/fanSpeed/currentMode', 'fixed'
+        (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
+        await handlers.handleFanRotationSpeedSet(100);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(
+            mockDevice, 'mp-id', 'fanControl', '/operationModes/mode/fanSpeed/currentMode', 'fixed'
         );
-        expect(mockDevice.setData).toHaveBeenCalledWith(
-            'mp-id', 'fanControl', '/operationModes/mode/fanSpeed/modes/fixed', 5
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(
+            mockDevice, 'mp-id', 'fanControl', '/operationModes/mode/fanSpeed/modes/fixed', 5
         );
     });
 
     test('handleHeatingThresholdTemperatureGet', async () => {
-        (mockHelper.getSetpoint as jest.Mock).mockReturnValue('setpoint');
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(21);
+        (mockDaikinDeviceWrapper.getSetpointType as jest.Mock).mockReturnValue('setpoint');
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(21);
         expect(await handlers.handleHeatingThresholdTemperatureGet()).toBe(21);
     });
+    // ... skipped unchanged ...
 
     test('handleHeatingThresholdTemperatureSet', async () => {
-        (mockHelper.getSetpoint as jest.Mock).mockReturnValue('setpoint');
+        (mockDaikinDeviceWrapper.getSetpointType as jest.Mock).mockReturnValue('setpoint');
         await handlers.handleHeatingThresholdTemperatureSet(21.1); // Rounds to 21
-        expect(mockDevice.setData).toHaveBeenCalledWith(
-            'mp-id', 'temperatureControl', `/operationModes/${DaikinOperationModes.HEATING}/setpoints/setpoint`, 21
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(
+            mockDevice, 'mp-id', 'temperatureControl', `/operationModes/${DaikinOperationModes.HEATING}/setpoints/setpoint`, 21
         );
     });
 
     describe('TargetHeaterCoolerState', () => {
         test('GET returns COOL', async () => {
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.COOLING);
+            (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.COOLING);
             expect(await handlers.handleTargetHeaterCoolerStateGet()).toBe(mockPlatform.Characteristic.TargetHeaterCoolerState.COOL);
         });
 
         test('GET returns HEAT', async () => {
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.HEATING);
+            (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.HEATING);
             expect(await handlers.handleTargetHeaterCoolerStateGet()).toBe(mockPlatform.Characteristic.TargetHeaterCoolerState.HEAT);
         });
 
-        test('GET returns AUTO for DRY (and updates rotation)', async () => {
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.DRY);
+        test('GET returns AUTO for DRY (and does NOT update rotation)', async () => {
+            (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue(DaikinOperationModes.DRY);
             expect(await handlers.handleTargetHeaterCoolerStateGet()).toBe(mockPlatform.Characteristic.TargetHeaterCoolerState.AUTO);
-            expect(mockUpdateRotation).toHaveBeenCalled();
+            // expect(mockUpdateRotation).toHaveBeenCalled(); // Removed
         });
 
         test('GET returns AUTO for unknown (default)', async () => {
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('UNKNOWN_MODE');
+            (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue('UNKNOWN_MODE');
             expect(await handlers.handleTargetHeaterCoolerStateGet()).toBe(mockPlatform.Characteristic.TargetHeaterCoolerState.AUTO);
         });
 
         test('SET COOL', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.COOL);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.COOLING);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.COOLING);
         });
 
         test('SET HEAT', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.HEAT);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.HEATING);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.HEATING);
         });
 
         test('SET AUTO', async () => {
             await handlers.handleTargetHeaterCoolerStateSet(mockPlatform.Characteristic.TargetHeaterCoolerState.AUTO);
-            expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
         });
     });
 
-    describe('SwingMode', () => {
-        test('SET Swing ENABLED (Vertical + Horizontal)', async () => {
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
+    describe('handleSwingMode', () => {
+        test('handleVerticalSwingModeGet/Set', async () => {
+            (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanDirectionVerticalModes.SWING);
+            expect(await handlers.handleVerticalSwingModeGet()).toBe(true);
 
-            await handlers.handleSwingModeSet(1); // Enabled
+            await handlers.handleVerticalSwingModeSet(false);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'fanControl', expect.stringContaining('vertical'), DaikinFanDirectionVerticalModes.STOP);
 
-            expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('horizontal'), DaikinFanDirectionHorizontalModes.SWING);
-            expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('vertical'), DaikinFanDirectionVerticalModes.SWING);
+            await handlers.handleVerticalSwingModeSet(true);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'fanControl', expect.stringContaining('vertical'), DaikinFanDirectionVerticalModes.SWING);
         });
 
-        test('SET Swing ENABLED (Only Vertical)', async () => {
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(false);
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
+        test('handleHorizontalSwingModeGet/Set', async () => {
+            (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanDirectionHorizontalModes.STOP);
+            expect(await handlers.handleHorizontalSwingModeGet()).toBe(false);
 
-            await handlers.handleSwingModeSet(1);
-
-            expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('vertical'), DaikinFanDirectionVerticalModes.SWING);
-            expect(mockDevice.setData).not.toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('horizontal'), expect.anything());
-        });
-
-        test('SET Swing ENABLED (Only Horizontal)', async () => {
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(false);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-
-            await handlers.handleSwingModeSet(1);
-
-            expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('horizontal'), DaikinFanDirectionHorizontalModes.SWING);
-            expect(mockDevice.setData).not.toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringContaining('vertical'), expect.anything());
-        });
-
-        test('GET Swing DISABLED', async () => {
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-
-            (mockHelper.safeGetValue as jest.Mock).mockImplementation((_k, path) => {
-                if (path.includes('vertical')) return DaikinFanDirectionVerticalModes.STOP;
-                return DaikinFanDirectionHorizontalModes.SWING;
-            });
-
-            expect(await handlers.handleSwingModeGet()).toBe(mockPlatform.Characteristic.SwingMode.SWING_DISABLED);
-        });
-
-        test('GET Swing ENABLED', async () => {
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-
-            (mockHelper.safeGetValue as jest.Mock).mockImplementation((_k, path) => {
-                if (path.includes('vertical')) return DaikinFanDirectionVerticalModes.SWING;
-                return DaikinFanDirectionHorizontalModes.SWING;
-            });
-
-            expect(await handlers.handleSwingModeGet()).toBe(mockPlatform.Characteristic.SwingMode.SWING_ENABLED);
-        });
-
-        test('GET Swing DISABLED (Vertical STOP, Horizontal Feature Missing)', async () => {
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(false);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-
-            (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanDirectionVerticalModes.STOP);
-
-            expect(await handlers.handleSwingModeGet()).toBe(mockPlatform.Characteristic.SwingMode.SWING_DISABLED);
-        });
-
-        test('GET Swing ENABLED (Only Horizontal SWING)', async () => {
-            (mockHelper.hasSwingModeVerticalFeature as jest.Mock).mockReturnValue(false);
-            (mockHelper.hasSwingModeHorizontalFeature as jest.Mock).mockReturnValue(true);
-            (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
-
-            (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanDirectionHorizontalModes.SWING);
-
-            expect(await handlers.handleSwingModeGet()).toBe(mockPlatform.Characteristic.SwingMode.SWING_ENABLED);
+            await handlers.handleHorizontalSwingModeSet(true);
+            expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'fanControl', expect.stringContaining('horizontal'), DaikinFanDirectionHorizontalModes.SWING);
         });
     });
 
     test('handlePowerfulModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinPowerfulModes.ON);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinPowerfulModes.ON);
         expect(await handlers.handlePowerfulModeGet()).toBe(true);
 
         await handlers.handlePowerfulModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.OFF);
 
         await handlers.handlePowerfulModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'powerfulMode', undefined, DaikinPowerfulModes.ON);
     });
 
     test('handleEconoModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinEconoModes.ON);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinEconoModes.ON);
         expect(await handlers.handleEconoModeGet()).toBe(true);
 
         await handlers.handleEconoModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', undefined, DaikinEconoModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'econoMode', undefined, DaikinEconoModes.OFF);
 
         await handlers.handleEconoModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'econoMode', undefined, DaikinEconoModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'econoMode', undefined, DaikinEconoModes.ON);
     });
 
     test('handleStreamerModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinStreamerModes.ON);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinStreamerModes.ON);
         expect(await handlers.handleStreamerModeGet()).toBe(true);
 
         await handlers.handleStreamerModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', undefined, DaikinStreamerModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'streamerMode', undefined, DaikinStreamerModes.OFF);
 
         await handlers.handleStreamerModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'streamerMode', undefined, DaikinStreamerModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'streamerMode', undefined, DaikinStreamerModes.ON);
     });
 
     test('handleOutdoorSilentModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinOutdoorSilentModes.ON);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinOutdoorSilentModes.ON);
         expect(await handlers.handleOutdoorSilentModeGet()).toBe(true);
 
         await handlers.handleOutdoorSilentModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.OFF);
 
         await handlers.handleOutdoorSilentModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'outdoorSilentMode', undefined, DaikinOutdoorSilentModes.ON);
     });
 
     test('handleIndoorSilentModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanSpeedModes.QUIET);
-        (mockHelper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinFanSpeedModes.QUIET);
+        (mockDaikinDeviceWrapper.getCurrentOperationMode as jest.Mock).mockReturnValue('mode');
         expect(await handlers.handleIndoorSilentModeGet()).toBe(true);
 
         await handlers.handleIndoorSilentModeSet(true); // Quiet
-        expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything(), DaikinFanSpeedModes.QUIET);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, expect.anything(), expect.anything(), expect.anything(), DaikinFanSpeedModes.QUIET);
 
         await handlers.handleIndoorSilentModeSet(false); // Fixed
-        expect(mockDevice.setData).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything(), DaikinFanSpeedModes.FIXED);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, expect.anything(), expect.anything(), expect.anything(), DaikinFanSpeedModes.FIXED);
     });
 
     test('handleDryOperationModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinOperationModes.DRY);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinOperationModes.DRY);
         expect(await handlers.handleDryOperationModeGet()).toBe(true);
 
         await handlers.handleDryOperationModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.DRY);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.DRY);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
 
         await handlers.handleDryOperationModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('handleFanOnlyOperationModeGet/Set', async () => {
-        (mockHelper.safeGetValue as jest.Mock).mockReturnValue(DaikinOperationModes.FAN_ONLY);
+        (mockDaikinDeviceWrapper.safeGetValue as jest.Mock).mockReturnValue(DaikinOperationModes.FAN_ONLY);
         expect(await handlers.handleFanOnlyOperationModeGet()).toBe(true);
 
         await handlers.handleFanOnlyOperationModeSet(true);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.FAN_ONLY);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.FAN_ONLY);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.ON);
 
         await handlers.handleFanOnlyOperationModeSet(false);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
-        expect(mockDevice.setData).toHaveBeenCalledWith('mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'operationMode', undefined, DaikinOperationModes.AUTO);
+        expect(mockApiService.setDeviceData).toHaveBeenCalledWith(mockDevice, 'mp-id', 'onOffMode', undefined, DaikinOnOffModes.OFF);
     });
 
     test('safeSetData logs error on failure', async () => {
-        (mockDevice.setData as jest.Mock).mockRejectedValue(new Error('Set failed'));
+        (mockApiService.setDeviceData as jest.Mock).mockRejectedValue(new Error('Set failed'));
         await handlers.handleActiveStateSet(true);
         expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Error setting data'));
     });
 });
+

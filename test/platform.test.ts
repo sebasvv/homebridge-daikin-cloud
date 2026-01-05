@@ -38,7 +38,7 @@ test('Initialize platform', async () => {
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(), api);
 
     expect(platform).toBeDefined();
-    expect(platform.updateIntervalDelay).toBe(900000);
+    expect(platform.config.updateIntervalInMinutes).toBe(15);
 });
 
 test('DaikinCloudPlatform with new Aircondition accessory', (done) => {
@@ -46,7 +46,7 @@ test('DaikinCloudPlatform with new Aircondition accessory', (done) => {
     const registerPlatformAccessoriesSpy = jest.spyOn(api, 'registerPlatformAccessories');
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
 
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([{
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([{
         getId: () => 'MOCK_ID',
         getDescription: () => {
             return {
@@ -79,7 +79,7 @@ test('DaikinCloudPlatform with new Altherma accessory', (done) => {
     const registerPlatformAccessoriesSpy = jest.spyOn(api, 'registerPlatformAccessories');
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
 
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([{
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([{
         getId: () => 'MOCK_ID',
         getDescription: () => {
             return {
@@ -121,7 +121,7 @@ test('Restore existing accessory', (done) => {
     const accessory = new api.platformAccessory('Cached Accesssory', api.hap.uuid.generate('MOCK_ID')) as PlatformAccessory<DaikinCloudAccessoryContext>;
     accessory.context = { device: null } as unknown as DaikinCloudAccessoryContext;
 
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([device]);
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([device]);
 
     // Simulate restoring from cache
     platform.configureAccessory(accessory);
@@ -152,7 +152,7 @@ test('Handle excluded device', (done) => {
     expect(platform).toBeDefined();
     const registerSpy = jest.spyOn(api, 'registerPlatformAccessories');
 
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([device]);
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([device]);
 
     api.signalFinished();
 
@@ -167,7 +167,7 @@ test('API Error handling (Generic)', (done) => {
     const logSpy = jest.spyOn(Logger.prototype, 'error');
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
 
-    (platform.controller.getCloudDevices as jest.Mock).mockRejectedValue(new Error('Network Error'));
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockRejectedValue(new Error('Network Error'));
 
     api.signalFinished();
 
@@ -182,12 +182,12 @@ test('Event handling: Authorization Request', (done) => {
     const logSpy = jest.spyOn(Logger.prototype, 'warn');
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
 
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([]);
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([]);
 
     api.signalFinished();
 
     // Trigger event manually (since it's a real EventEmitter now!)
-    platform.controller.emit('authorization_request', 'https://mock.url');
+    platform.apiService.controller.emit('authorization_request', 'https://mock.url');
 
     setTimeout(() => {
         expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Please navigate to https://mock.url'));
@@ -202,12 +202,12 @@ test('Event handling: Rate Limit', (done) => {
     const debugSpy = jest.spyOn(Logger.prototype, 'debug');
 
     const platform = new DaikinCloudPlatform(new Logger(), new MockPlatformConfig(true), api);
-    (platform.controller.getCloudDevices as jest.Mock).mockResolvedValue([]);
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockResolvedValue([]);
 
     api.signalFinished();
 
     // Trigger Warning
-    platform.controller.emit('rate_limit_status', {
+    platform.apiService.controller.emit('rate_limit_status', {
         remainingDay: 15,
         limitDay: 200,
         remainingMinute: 5,
@@ -215,7 +215,7 @@ test('Event handling: Rate Limit', (done) => {
     });
 
     // Trigger Critical
-    platform.controller.emit('rate_limit_status', {
+    platform.apiService.controller.emit('rate_limit_status', {
         remainingDay: 5,
         limitDay: 200,
         remainingMinute: 5,
@@ -249,7 +249,7 @@ test('Invalid Grant Error Handling', (done) => {
     expect(platform).toBeDefined();
     const logSpy = jest.spyOn(Logger.prototype, 'warn');
 
-    (platform.controller.getCloudDevices as jest.Mock).mockRejectedValue(error);
+    (platform.apiService.controller.getCloudDevices as jest.Mock).mockRejectedValue(error);
 
     api.signalFinished();
 

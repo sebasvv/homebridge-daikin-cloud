@@ -55,8 +55,15 @@ Add the `DaikinCloud` platform to your `config.json`.
     - **Redirect URI**: `https://<YOUR_HOMEBRIDGE_IP>:<PORT>` (e.g., `https://192.168.1.100:8582`).
 2.  **Homebridge Config**: Enter the Client ID and Secret from the portal.
 
+> [!NOTE]
+> **Cloud vs Local Control**: This plugin relies exclusively on the **Daikin Cloud API**. It requires an active internet connection and will not work if Daikin's servers are down. For local control without internet dependency, consider using `homebridge-daikin-local` (if your device supports the legacy local API).
+
 ## Troubleshooting
 
+- **"No Response" in Home App**:
+    - This often indicates that the plugin is rate-limited by Daikin or the Cloud is experiencing maintenance.
+    - Wait 15-30 minutes. The plugin implements a random backoff and will recover automatically.
+    - Do **not** restart Homebridge repeatedly; this will only worsen the rate limiting.
 - **Authentication**: Delete `.daikin-controller-cloud-tokenset` in your storage folder to force re-authentication.
 - **Logs**: Check Homebridge logs. This plugin uses structured logging for easier debugging.
 

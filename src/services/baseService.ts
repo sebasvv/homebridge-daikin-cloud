@@ -105,3 +105,9 @@ export enum DaikinEconoModes {
     ON = 'on',
     OFF = 'off',
 }
+
+export enum DaikinSetpointModes {
+    FIXED = 'fixed',
+    WEATHER_DEPENDENT_HEATING_FIXED_COOLING = 'weatherDependentHeatingFixedCooling',
+    WEATHER_DEPENDENT = 'weatherDependent',
+}

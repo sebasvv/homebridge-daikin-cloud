@@ -1,7 +1,7 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { DaikinCloudAccessoryContext, DaikinCloudPlatform } from '../platform';
 import { BaseService, DaikinOperationModes } from './baseService';
-import { ClimateControlHelper } from './climateControlHelper';
+import { DaikinDeviceWrapper } from '../utils/DaikinDeviceWrapper';
 import { ClimateControlHandlers } from './climateControlHandlers';
 
 export class ClimateControlService extends BaseService {
@@ -13,9 +13,12 @@ export class ClimateControlService extends BaseService {
         INDOOR_SILENT_MODE: 'Indoor silent mode',
         DRY_OPERATION_MODE: 'Dry operation mode',
         FAN_ONLY_OPERATION_MODE: 'Fan only operation mode',
+        VERTICAL_SWING_MODE: 'Vertical swing',
+        HORIZONTAL_SWING_MODE: 'Horizontal swing',
     };
 
     private readonly service?: Service;
+    private readonly fanService?: Service;
     private readonly switchServicePowerfulMode?: Service;
     private readonly switchServiceEconoMode?: Service;
     private readonly switchServiceStreamerMode?: Service;
@@ -23,9 +26,11 @@ export class ClimateControlService extends BaseService {
     private readonly switchServiceIndoorSilentMode?: Service;
     private readonly switchServiceDryOperationMode?: Service;
     private readonly switchServiceFanOnlyOperationMode?: Service;
+    private readonly switchServiceVerticalSwingMode?: Service;
+    private readonly switchServiceHorizontalSwingMode?: Service;
 
-    private readonly helper: ClimateControlHelper;
-    private readonly handlers: ClimateControlHandlers;
+    public readonly wrapper: DaikinDeviceWrapper;
+    public readonly handlers: ClimateControlHandlers;
 
     constructor(
         platform: DaikinCloudPlatform,
@@ -34,23 +39,70 @@ export class ClimateControlService extends BaseService {
     ) {
         super(platform, accessory, managementPointId);
 
-        this.helper = new ClimateControlHelper(
-            this.platform,
-            this.accessory.context.device,
-            this.managementPointId,
-            this.name,
-        );
+        this.wrapper = new DaikinDeviceWrapper(this.accessory.context.device, this.managementPointId);
         this.handlers = new ClimateControlHandlers(
             this.platform,
             this.accessory.context.device,
             this.managementPointId,
             this.name,
-            this.helper,
-            () => this.platform.forceUpdateDevices(),
-            () => this.addOrUpdateCharacteristicRotationSpeed(),
+            this.wrapper,
         );
 
         this.service = this.accessory.getService(this.platform.Service.HeaterCooler);
+        this.fanService = this.accessory.getService(this.platform.Service.Fanv2);
+
+        // ... (rest of switch services)
+
+        this.service = this.service || this.accessory.addService(this.platform.Service.HeaterCooler);
+
+        // ...
+
+        // Fan Service Initialization
+        const hasFanControl = this.wrapper.getData('fanControl', undefined);
+
+        if (hasFanControl) {
+            this.fanService =
+                this.fanService || this.accessory.addService(this.platform.Service.Fanv2, 'Fan', 'fan_v2');
+
+            this.fanService.setCharacteristic(this.platform.Characteristic.Name, 'Fan');
+
+            this.fanService
+                .getCharacteristic(this.platform.Characteristic.Active)
+                .onGet(this.handlers.handleFanActiveGet.bind(this.handlers))
+                .onSet(this.handlers.handleFanActiveSet.bind(this.handlers));
+
+            this.fanService
+                .getCharacteristic(this.platform.Characteristic.CurrentFanState)
+                .onGet(this.handlers.handleFanCurrentStateGet.bind(this.handlers));
+
+            this.fanService
+                .getCharacteristic(this.platform.Characteristic.TargetFanState)
+                .onGet(this.handlers.handleFanTargetStateGet.bind(this.handlers))
+                .onSet(this.handlers.handleFanTargetStateSet.bind(this.handlers));
+
+            this.fanService
+                .getCharacteristic(this.platform.Characteristic.RotationSpeed)
+                .setProps({
+                    minValue: 0,
+                    maxValue: 100,
+                    minStep: 1,
+                })
+                .onGet(this.handlers.handleFanRotationSpeedGet.bind(this.handlers))
+                .onSet(this.handlers.handleFanRotationSpeedSet.bind(this.handlers));
+        } else {
+            if (this.fanService) {
+                this.accessory.removeService(this.fanService);
+            }
+        }
+
+        // Cleanup old RotationSpeed from HeaterCooler
+        if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
+            this.service.removeCharacteristic(
+                this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
+            );
+        }
+
+        // Removed: this.addOrUpdateCharacteristicRotationSpeed();
         this.switchServicePowerfulMode = this.accessory.getService(this.extraServices.POWERFUL_MODE);
         this.switchServiceEconoMode = this.accessory.getService(this.extraServices.ECONO_MODE);
         this.switchServiceStreamerMode = this.accessory.getService(this.extraServices.STREAMER_MODE);
@@ -74,6 +126,45 @@ export class ClimateControlService extends BaseService {
             .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
             .onGet(this.handlers.handleCurrentTemperatureGet.bind(this.handlers));
 
+        // Update humidity
+        const humidity = this.wrapper.getRoomHumidity();
+        if (humidity !== null) {
+            this.platform.daikinLogger.debug(
+                `[${this.name}] Device supports Humidity, adding CurrentRelativeHumidity characteristic`,
+            );
+            this.service.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity).updateValue(humidity);
+            // .onGet() is handled by updateState pushing values, or we can add a getter if we want pull support
+            // For now, let's rely on updateState pushing it, or add a simple getter.
+            // Simple getter wrapping helper:
+            // .onGet(() => this.wrapper.getRoomHumidity() ?? 0)
+        } else {
+            // If humidity is strictly not supported, we can remove it if it exists (cleanup)
+            if (this.service.testCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)) {
+                this.service.removeCharacteristic(
+                    this.service.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity),
+                );
+            }
+        }
+
+        // Filter Maintenance Service
+        const hasFilterData =
+            this.accessory.context.device.getData(this.managementPointId, 'filterCleaningInterval', undefined) ||
+            this.accessory.context.device.getData(this.managementPointId, 'filterSign', undefined);
+
+        if (hasFilterData) {
+            const filterService =
+                this.accessory.getService(this.platform.Service.FilterMaintenance) ||
+                this.accessory.addService(this.platform.Service.FilterMaintenance, 'Filter', 'filter_maintenance');
+
+            filterService
+                .getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
+                .onGet(this.handlers.handleFilterChangeIndicationGet.bind(this.handlers));
+
+            filterService
+                .getCharacteristic(this.platform.Characteristic.FilterLifeLevel)
+                .onGet(this.handlers.handleFilterLifeLevelGet.bind(this.handlers));
+        }
+
         // Required characteristic
         this.service
             .getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
@@ -85,9 +176,9 @@ export class ClimateControlService extends BaseService {
             .onGet(this.handlers.handleTargetHeaterCoolerStateGet.bind(this.handlers))
             .onSet(this.handlers.handleTargetHeaterCoolerStateSet.bind(this.handlers));
 
-        const roomTemperatureControlForCooling = this.helper.getData(
+        const roomTemperatureControlForCooling = this.wrapper.getData(
             'temperatureControl',
-            `/operationModes/${DaikinOperationModes.COOLING}/setpoints/${this.helper.getSetpoint(DaikinOperationModes.COOLING)}`,
+            `/operationModes/${DaikinOperationModes.COOLING}/setpoints/${this.wrapper.getSetpointType(DaikinOperationModes.COOLING)}`,
         );
         if (roomTemperatureControlForCooling) {
             this.service
@@ -106,9 +197,9 @@ export class ClimateControlService extends BaseService {
             );
         }
 
-        const roomTemperatureControlForHeating = this.helper.getData(
+        const roomTemperatureControlForHeating = this.wrapper.getData(
             'temperatureControl',
-            `/operationModes/${DaikinOperationModes.HEATING}/setpoints/${this.helper.getSetpoint(DaikinOperationModes.HEATING)}`,
+            `/operationModes/${DaikinOperationModes.HEATING}/setpoints/${this.wrapper.getSetpointType(DaikinOperationModes.HEATING)}`,
         );
         if (roomTemperatureControlForHeating) {
             this.service
@@ -127,17 +218,83 @@ export class ClimateControlService extends BaseService {
             );
         }
 
-        this.addOrUpdateCharacteristicRotationSpeed();
+        this.switchServiceVerticalSwingMode = this.accessory.getService(this.extraServices.VERTICAL_SWING_MODE);
+        this.switchServiceHorizontalSwingMode = this.accessory.getService(this.extraServices.HORIZONTAL_SWING_MODE);
 
-        if (this.helper.hasSwingModeFeature()) {
-            this.platform.daikinLogger.debug(`[${this.name}] Device has SwingMode, add Characteristic`);
-            this.service
-                .getCharacteristic(this.platform.Characteristic.SwingMode)
-                .onGet(this.handlers.handleSwingModeGet.bind(this.handlers))
-                .onSet(this.handlers.handleSwingModeSet.bind(this.handlers));
+        this.service = this.service || this.accessory.addService(this.platform.Service.HeaterCooler);
+
+        this.service.setCharacteristic(this.platform.Characteristic.Name, this.name);
+
+        // Remove generic SwingMode if it exists from previous versions
+        if (this.service.testCharacteristic(this.platform.Characteristic.SwingMode)) {
+            this.service.removeCharacteristic(this.service.getCharacteristic(this.platform.Characteristic.SwingMode));
         }
 
-        if (this.helper.hasPowerfulModeFeature() && this.platform.config.showExtraFeatures) {
+        // ... (existing code for Active, Temperature, Humidity ...)
+
+        // Vertical Swing
+        if (this.wrapper.hasSwingModeVerticalFeature() && this.platform.config.showExtraFeatures) {
+            this.switchServiceVerticalSwingMode =
+                this.switchServiceVerticalSwingMode ||
+                accessory.addService(
+                    this.platform.Service.Switch,
+                    this.extraServices.VERTICAL_SWING_MODE,
+                    'vertical_swing_mode',
+                );
+
+            this.switchServiceVerticalSwingMode.setCharacteristic(
+                this.platform.Characteristic.Name,
+                this.extraServices.VERTICAL_SWING_MODE,
+            );
+            this.switchServiceVerticalSwingMode.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+            this.switchServiceVerticalSwingMode.setCharacteristic(
+                this.platform.Characteristic.ConfiguredName,
+                this.extraServices.VERTICAL_SWING_MODE,
+            );
+
+            this.switchServiceVerticalSwingMode
+                .getCharacteristic(this.platform.Characteristic.On)
+                .onGet(this.handlers.handleVerticalSwingModeGet.bind(this.handlers))
+                .onSet(this.handlers.handleVerticalSwingModeSet.bind(this.handlers));
+        } else {
+            if (this.switchServiceVerticalSwingMode) {
+                accessory.removeService(this.switchServiceVerticalSwingMode);
+            }
+        }
+
+        // Horizontal Swing
+        if (this.wrapper.hasSwingModeHorizontalFeature() && this.platform.config.showExtraFeatures) {
+            this.switchServiceHorizontalSwingMode =
+                this.switchServiceHorizontalSwingMode ||
+                accessory.addService(
+                    this.platform.Service.Switch,
+                    this.extraServices.HORIZONTAL_SWING_MODE,
+                    'horizontal_swing_mode',
+                );
+
+            this.switchServiceHorizontalSwingMode.setCharacteristic(
+                this.platform.Characteristic.Name,
+                this.extraServices.HORIZONTAL_SWING_MODE,
+            );
+            this.switchServiceHorizontalSwingMode.addOptionalCharacteristic(
+                this.platform.Characteristic.ConfiguredName,
+            );
+            this.switchServiceHorizontalSwingMode.setCharacteristic(
+                this.platform.Characteristic.ConfiguredName,
+                this.extraServices.HORIZONTAL_SWING_MODE,
+            );
+
+            this.switchServiceHorizontalSwingMode
+                .getCharacteristic(this.platform.Characteristic.On)
+                .onGet(this.handlers.handleHorizontalSwingModeGet.bind(this.handlers))
+                .onSet(this.handlers.handleHorizontalSwingModeSet.bind(this.handlers));
+        } else {
+            if (this.switchServiceHorizontalSwingMode) {
+                accessory.removeService(this.switchServiceHorizontalSwingMode);
+            }
+        }
+
+        if (this.wrapper.hasPowerfulModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has PowerfulMode, add Switch Service`);
 
             this.switchServicePowerfulMode =
@@ -164,7 +321,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasEconoModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasEconoModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has EconoMode, add Switch Service`);
 
             this.switchServiceEconoMode =
@@ -191,7 +348,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasStreamerModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasStreamerModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has StreamerMode, add Switch Service`);
 
             this.switchServiceStreamerMode =
@@ -218,7 +375,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasOutdoorSilentModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasOutdoorSilentModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has StreamerMode, add Switch Service`);
 
             this.switchServiceOutdoorSilentMode =
@@ -249,7 +406,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasIndoorSilentModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasIndoorSilentModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has IndoorSilentMode, add Switch Service`);
 
             this.switchServiceIndoorSilentMode =
@@ -280,7 +437,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasDryOperationModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasDryOperationModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has DryOperationMode, add Switch Service`);
 
             this.switchServiceDryOperationMode =
@@ -311,7 +468,7 @@ export class ClimateControlService extends BaseService {
             }
         }
 
-        if (this.helper.hasFanOnlyOperationModeFeature() && this.platform.config.showExtraFeatures) {
+        if (this.wrapper.hasFanOnlyOperationModeFeature() && this.platform.config.showExtraFeatures) {
             this.platform.daikinLogger.debug(`[${this.name}] Device has FanOnlyOperationMode, add Switch Service`);
 
             this.switchServiceFanOnlyOperationMode =
@@ -345,35 +502,6 @@ export class ClimateControlService extends BaseService {
         }
     }
 
-    addOrUpdateCharacteristicRotationSpeed() {
-        if (!this.service) {
-            throw Error('Service not initialized');
-        }
-
-        const fanControl = this.accessory.context.device.getData(
-            this.managementPointId,
-            'fanControl',
-            `/operationModes/${this.helper.getCurrentOperationMode()}/fanSpeed/modes/fixed`,
-        );
-
-        if (fanControl) {
-            this.service
-                .getCharacteristic(this.platform.Characteristic.RotationSpeed)
-                .updateValue(fanControl.value ?? 1)
-                .setProps({
-                    minStep: fanControl.stepValue ?? 1,
-                    minValue: fanControl.minValue ?? 1,
-                    maxValue: fanControl.maxValue ?? 100,
-                })
-                .onGet(this.handlers.handleRotationSpeedGet.bind(this.handlers))
-                .onSet(this.handlers.handleRotationSpeedSet.bind(this.handlers));
-        } else {
-            this.service.removeCharacteristic(
-                this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed),
-            );
-        }
-    }
-
     async handleActiveStateGet(): Promise<CharacteristicValue> {
         return this.handlers.handleActiveStateGet();
     }
@@ -394,14 +522,6 @@ export class ClimateControlService extends BaseService {
         return this.handlers.handleCoolingThresholdTemperatureSet(value);
     }
 
-    async handleRotationSpeedGet(): Promise<CharacteristicValue> {
-        return this.handlers.handleRotationSpeedGet();
-    }
-
-    async handleRotationSpeedSet(value: CharacteristicValue) {
-        return this.handlers.handleRotationSpeedSet(value);
-    }
-
     async handleHeatingThresholdTemperatureGet(): Promise<CharacteristicValue> {
         return this.handlers.handleHeatingThresholdTemperatureGet();
     }
@@ -416,14 +536,6 @@ export class ClimateControlService extends BaseService {
 
     async handleTargetHeaterCoolerStateSet(value: CharacteristicValue) {
         return this.handlers.handleTargetHeaterCoolerStateSet(value);
-    }
-
-    async handleSwingModeSet(value: CharacteristicValue) {
-        return this.handlers.handleSwingModeSet(value);
-    }
-
-    async handleSwingModeGet(): Promise<CharacteristicValue> {
-        return this.handlers.handleSwingModeGet();
     }
 
     async handlePowerfulModeGet(): Promise<CharacteristicValue> {
@@ -492,6 +604,13 @@ export class ClimateControlService extends BaseService {
                 this.platform.Characteristic.CurrentTemperature,
                 await this.handlers.handleCurrentTemperatureGet(),
             );
+
+            if (this.service.testCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)) {
+                const humidity = this.wrapper.getRoomHumidity();
+                if (humidity !== null) {
+                    this.service.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, humidity);
+                }
+            }
             this.service.updateCharacteristic(
                 this.platform.Characteristic.TargetHeaterCoolerState,
                 await this.handlers.handleTargetHeaterCoolerStateGet(),
@@ -509,18 +628,57 @@ export class ClimateControlService extends BaseService {
                     await this.handlers.handleHeatingThresholdTemperatureGet(),
                 );
             }
-            if (this.service.testCharacteristic(this.platform.Characteristic.RotationSpeed)) {
-                this.service.updateCharacteristic(
-                    this.platform.Characteristic.RotationSpeed,
-                    await this.handlers.handleRotationSpeedGet(),
-                );
-            }
+
             if (this.service.testCharacteristic(this.platform.Characteristic.SwingMode)) {
-                this.service.updateCharacteristic(
-                    this.platform.Characteristic.SwingMode,
-                    await this.handlers.handleSwingModeGet(),
+                this.service.removeCharacteristic(
+                    this.service.getCharacteristic(this.platform.Characteristic.SwingMode),
                 );
             }
+        }
+
+        if (this.fanService) {
+            this.fanService.updateCharacteristic(
+                this.platform.Characteristic.Active,
+                await this.handlers.handleFanActiveGet(),
+            );
+            this.fanService.updateCharacteristic(
+                this.platform.Characteristic.CurrentFanState,
+                await this.handlers.handleFanCurrentStateGet(),
+            );
+            this.fanService.updateCharacteristic(
+                this.platform.Characteristic.TargetFanState,
+                await this.handlers.handleFanTargetStateGet(),
+            );
+            this.fanService.updateCharacteristic(
+                this.platform.Characteristic.RotationSpeed,
+                await this.handlers.handleFanRotationSpeedGet(),
+            );
+        }
+
+        const filterService = this.accessory.getService(this.platform.Service.FilterMaintenance);
+        if (filterService) {
+            filterService.updateCharacteristic(
+                this.platform.Characteristic.FilterChangeIndication,
+                await this.handlers.handleFilterChangeIndicationGet(),
+            );
+            filterService.updateCharacteristic(
+                this.platform.Characteristic.FilterLifeLevel,
+                await this.handlers.handleFilterLifeLevelGet(),
+            );
+        }
+
+        if (this.switchServiceVerticalSwingMode) {
+            this.switchServiceVerticalSwingMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleVerticalSwingModeGet(),
+            );
+        }
+
+        if (this.switchServiceHorizontalSwingMode) {
+            this.switchServiceHorizontalSwingMode.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleHorizontalSwingModeGet(),
+            );
         }
 
         if (this.switchServicePowerfulMode) {

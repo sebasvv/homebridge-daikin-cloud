@@ -1,11 +1,11 @@
 import { ClimateControlService } from '../../src/services/climateControlService';
 import { DaikinCloudPlatform, DaikinCloudAccessoryContext } from '../../src/platform';
 import { PlatformAccessory, Service } from 'homebridge';
-import { ClimateControlHelper } from '../../src/services/climateControlHelper';
+import { DaikinDeviceWrapper } from '../../src/utils/DaikinDeviceWrapper';
 import { ClimateControlHandlers } from '../../src/services/climateControlHandlers';
 
 
-jest.mock('../../src/services/climateControlHelper');
+jest.mock('../../src/utils/DaikinDeviceWrapper');
 jest.mock('../../src/services/climateControlHandlers');
 
 const mockLog = {
@@ -76,7 +76,7 @@ describe('ClimateControlService', () => {
         jest.clearAllMocks();
         (mockAccessory.getService as jest.Mock).mockReturnValue(undefined);
         (mockAccessory.addService as jest.Mock).mockReturnValue(mockService);
-        (ClimateControlHelper.prototype.getData as jest.Mock).mockReturnValue(undefined);
+        (DaikinDeviceWrapper.prototype.getData as jest.Mock).mockReturnValue(undefined);
     });
 
     test('constructor sets up basics', () => {
@@ -103,13 +103,13 @@ describe('ClimateControlService', () => {
     });
 
     test('handles threshold temperatures if data present', () => {
-        (ClimateControlHelper.prototype.getData as jest.Mock).mockReturnValue({ value: 20, stepValue: 0.5 });
+        (DaikinDeviceWrapper.prototype.getData as jest.Mock).mockReturnValue({ value: 20, stepValue: 0.5 });
         service = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id');
         expect(mockCharacteristic.setProps).toHaveBeenCalled();
     });
 
     test('removes threshold characteristics if data missing', () => {
-        (ClimateControlHelper.prototype.getData as jest.Mock).mockReturnValue(undefined);
+        (DaikinDeviceWrapper.prototype.getData as jest.Mock).mockReturnValue(undefined);
         service = new ClimateControlService(mockPlatform, mockAccessory, 'mp-id');
         expect(mockService.removeCharacteristic).toHaveBeenCalledWith(mockCharacteristic);
     });
@@ -152,11 +152,11 @@ describe('ClimateControlService', () => {
         await service.handleCoolingThresholdTemperatureSet(25);
         expect(ClimateControlHandlers.prototype.handleCoolingThresholdTemperatureSet).toHaveBeenCalledWith(25);
 
-        await service.handleRotationSpeedGet();
-        expect(ClimateControlHandlers.prototype.handleRotationSpeedGet).toHaveBeenCalled();
+        await service.handlers.handleFanRotationSpeedGet();
+        expect(ClimateControlHandlers.prototype.handleFanRotationSpeedGet).toHaveBeenCalled();
 
-        await service.handleRotationSpeedSet(50);
-        expect(ClimateControlHandlers.prototype.handleRotationSpeedSet).toHaveBeenCalledWith(50);
+        await service.handlers.handleFanRotationSpeedSet(50);
+        expect(ClimateControlHandlers.prototype.handleFanRotationSpeedSet).toHaveBeenCalledWith(50);
 
         await service.handleHeatingThresholdTemperatureGet();
         expect(ClimateControlHandlers.prototype.handleHeatingThresholdTemperatureGet).toHaveBeenCalled();
@@ -170,11 +170,9 @@ describe('ClimateControlService', () => {
         await service.handleTargetHeaterCoolerStateSet(1);
         expect(ClimateControlHandlers.prototype.handleTargetHeaterCoolerStateSet).toHaveBeenCalledWith(1);
 
-        await service.handleSwingModeGet();
-        expect(ClimateControlHandlers.prototype.handleSwingModeGet).toHaveBeenCalled();
-
-        await service.handleSwingModeSet(1);
-        expect(ClimateControlHandlers.prototype.handleSwingModeSet).toHaveBeenCalledWith(1);
+        // Swing Mode logic refactored to separate switches, removing outdated HeaterCooler SwingMode tests
+        // await service.handleSwingModeGet();
+        // expect(ClimateControlHandlers.prototype.handleSwingModeGet).toHaveBeenCalled();
 
         await service.handlePowerfulModeGet();
         expect(ClimateControlHandlers.prototype.handlePowerfulModeGet).toHaveBeenCalled();
