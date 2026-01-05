@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.0](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.9...v3.1.0) (2026-01-05)
+
+### Features
+
+- Introduce Python scripts for assembling OpenAPI specification from fragmented files. ([44a18d7](https://github.com/sebasvv/homebridge-daikin-cloud/commit/44a18d7635ede5315f339bd89a0b9b754964bde4))
+- major architecture overhaul, optimistic UI, rate limiting, and custom auth UI ([1146af7](https://github.com/sebasvv/homebridge-daikin-cloud/commit/1146af732bbe140ca3edf449e524c2bb3fd55196))
+
 ### [3.0.9](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.8...v3.0.9) (2026-01-04)
 
 ### Features
