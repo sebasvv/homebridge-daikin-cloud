@@ -117,25 +117,30 @@ export class DaikinDeviceWrapper {
     }
 
     public hasPowerfulModeFeature(): boolean {
-        return this.getData('powerfulMode', undefined) !== undefined;
+        const data = this.getData('powerfulMode', undefined);
+        return data !== undefined && data !== null;
     }
 
     public hasEconoModeFeature(): boolean {
-        return this.getData('econoMode', undefined) !== undefined;
+        const data = this.getData('econoMode', undefined);
+        return data !== undefined && data !== null;
     }
 
     public hasStreamerModeFeature(): boolean {
-        return this.getData('streamerMode', undefined) !== undefined;
+        const data = this.getData('streamerMode', undefined);
+        return data !== undefined && data !== null;
     }
 
     public hasOutdoorSilentModeFeature(): boolean {
-        return this.getData('outdoorSilentMode', undefined) !== undefined;
+        const data = this.getData('outdoorSilentMode', undefined);
+        return data !== undefined && data !== null;
     }
 
     public hasIndoorSilentModeFeature(): boolean {
         // Check if fanSpeed supports 'quiet'.
         // This is an approximation. If fanControl exists, we assume support or we need to dive deeper.
-        return this.getData('fanControl', undefined) !== undefined;
+        const data = this.getData('fanControl', undefined);
+        return data !== undefined && data !== null;
     }
 
     public hasDryOperationModeFeature(): boolean {
@@ -151,20 +156,19 @@ export class DaikinDeviceWrapper {
     public hasSwingModeVerticalFeature(): boolean {
         // Check vertical swing presence under fanControl for current mode (or Auto)
         const opMode = this.getCurrentOperationMode();
-        return (
-            this.getData('fanControl', `/operationModes/${opMode}/fanDirection/vertical`) !== undefined ||
-            this.getData('fanControl', `/operationModes/${DaikinOperationModes.AUTO}/fanDirection/vertical`) !==
-                undefined
-        );
+        const data1 = this.getData('fanControl', `/operationModes/${opMode}/fanDirection/vertical`);
+        const data2 = this.getData('fanControl', `/operationModes/${DaikinOperationModes.AUTO}/fanDirection/vertical`);
+        return (data1 !== undefined && data1 !== null) || (data2 !== undefined && data2 !== null);
     }
 
     public hasSwingModeHorizontalFeature(): boolean {
         const opMode = this.getCurrentOperationMode();
-        return (
-            this.getData('fanControl', `/operationModes/${opMode}/fanDirection/horizontal`) !== undefined ||
-            this.getData('fanControl', `/operationModes/${DaikinOperationModes.AUTO}/fanDirection/horizontal`) !==
-                undefined
+        const data1 = this.getData('fanControl', `/operationModes/${opMode}/fanDirection/horizontal`);
+        const data2 = this.getData(
+            'fanControl',
+            `/operationModes/${DaikinOperationModes.AUTO}/fanDirection/horizontal`,
         );
+        return (data1 !== undefined && data1 !== null) || (data2 !== undefined && data2 !== null);
     }
 
     public isCoolingSupported(): boolean {
