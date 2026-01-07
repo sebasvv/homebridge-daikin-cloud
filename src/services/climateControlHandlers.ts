@@ -38,29 +38,18 @@ export class ClimateControlHandlers {
     }
 
     async handleFilterChangeIndicationGet(): Promise<CharacteristicValue> {
-        // Daikin often provides a boolean or enum for filter sign.
-        // 0 = FILTER_OK, 1 = CHANGE_FILTER
         const filterSign = this.safeGetValue<boolean>('filterSign', undefined, false);
-        this.platform.daikinLogger.debug(`[${this.name}] GET FilterChangeIndication: ${filterSign}`);
         return filterSign
             ? this.platform.Characteristic.FilterChangeIndication.CHANGE_FILTER
             : this.platform.Characteristic.FilterChangeIndication.FILTER_OK;
     }
 
     async handleFilterLifeLevelGet(): Promise<CharacteristicValue> {
-        // Some units report 'filterCleaningInterval' as a remaining percentage or days.
-        // If not available, we default to 100 (unknown/full).
-        // For now, mapping ANY existence of cleaning interval to 100 if no specific level is found.
-        // Real implementation depends on exact API value which is obscure.
-        // Using mock value or 100 for compliance.
         return 100;
     }
 
     async handleActiveStateGet(): Promise<CharacteristicValue> {
         const state = this.safeGetValue<DaikinOnOffModes>('onOffMode', undefined);
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET ActiveState, state: ${state}, last update: ${this.device.getLastUpdated()}`,
-        );
         return state === DaikinOnOffModes.ON;
     }
 
@@ -72,22 +61,14 @@ export class ClimateControlHandlers {
     }
 
     async handleCurrentTemperatureGet(): Promise<CharacteristicValue> {
-        const temperature = this.safeGetValue<number>('sensoryData', '/' + this.wrapper.getCurrentControlMode());
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET CurrentTemperature, temperature: ${temperature}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return temperature;
+        return this.safeGetValue<number>('sensoryData', '/' + this.wrapper.getCurrentControlMode());
     }
 
     async handleCoolingThresholdTemperatureGet(): Promise<CharacteristicValue> {
-        const temperature = this.safeGetValue<number>(
+        return this.safeGetValue<number>(
             'temperatureControl',
             `/operationModes/${DaikinOperationModes.COOLING}/setpoints/${this.wrapper.getSetpointType(DaikinOperationModes.COOLING)}`,
         );
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET CoolingThresholdTemperature, temperature: ${temperature}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return temperature;
     }
 
     async handleCoolingThresholdTemperatureSet(value: CharacteristicValue) {
@@ -104,34 +85,27 @@ export class ClimateControlHandlers {
     }
 
     async handleFanActiveGet(): Promise<CharacteristicValue> {
-        // Fan is active if the AC is ON.
         return this.handleActiveStateGet();
     }
 
     async handleFanActiveSet(value: CharacteristicValue) {
-        // Turning Fan ON/OFF triggers the main AC
         return this.handleActiveStateSet(value);
     }
 
     async handleFanCurrentStateGet(): Promise<CharacteristicValue> {
-        // 0: INACTIVE, 1: IDLE, 2: BLOWING
-        // If AC is OFF -> INACTIVE
         const isActive = await this.handleActiveStateGet();
         if (!isActive) {
             return this.platform.Characteristic.CurrentFanState.INACTIVE;
         }
-        // If ON, we assume it's BLOWING (2) unless we can detect idle (defrost/standby)
         return this.platform.Characteristic.CurrentFanState.BLOWING_AIR;
     }
 
     async handleFanTargetStateGet(): Promise<CharacteristicValue> {
-        // 0: MANUAL, 1: AUTO
         const fanSpeedMode = this.safeGetValue<string>(
             'fanControl',
             `/operationModes/${this.wrapper.getCurrentOperationMode()}/fanSpeed/currentMode`,
             'fixed',
         );
-        this.platform.daikinLogger.debug(`[${this.name}] GET FanTargetState, mode: ${fanSpeedMode}`);
 
         if (fanSpeedMode === 'auto') {
             return this.platform.Characteristic.TargetFanState.AUTO;
@@ -142,15 +116,11 @@ export class ClimateControlHandlers {
     async handleFanTargetStateSet(value: CharacteristicValue) {
         this.platform.daikinLogger.debug(`[${this.name}] SET FanTargetState to: ${value}`);
         const targetMode = value as number;
-        // 1 = AUTO, 0 = MANUAL
 
         let newDaikinMode = 'fixed';
         if (targetMode === this.platform.Characteristic.TargetFanState.AUTO) {
             newDaikinMode = 'auto';
         } else {
-            // If switching to MANUAL, we should ideally revert to the last known fixed speed,
-            // but 'fixed' default is safe. logic handled in speed set usually.
-            // If currently 'auto', switching to manual might need a speed set.
             newDaikinMode = 'fixed';
         }
 
@@ -172,17 +142,15 @@ export class ClimateControlHandlers {
             return 15;
         }
         if (currentMode === 'auto') {
-            return 50; // Arbitrary for UI
+            return 50;
         }
 
         const daikinLevel = this.safeGetValue<number>(
             'fanControl',
             `/operationModes/${this.wrapper.getCurrentOperationMode()}/fanSpeed/modes/fixed`,
-            3, // default
+            3,
         );
 
-        // Map 1-5 to %
-        // 1: 25, 2: 40, 3: 60, 4: 80, 5: 100
         switch (daikinLevel) {
             case 1:
                 return 25;
@@ -206,7 +174,6 @@ export class ClimateControlHandlers {
         let daikinMode = 'fixed';
         let daikinLevel = 3;
 
-        // Map % to Daikin Level/Quiet
         if (speed <= 15) {
             daikinMode = 'quiet';
         } else if (speed <= 30) {
@@ -239,14 +206,10 @@ export class ClimateControlHandlers {
     }
 
     async handleHeatingThresholdTemperatureGet(): Promise<CharacteristicValue> {
-        const temperature = this.safeGetValue<number>(
+        return this.safeGetValue<number>(
             'temperatureControl',
             `/operationModes/${DaikinOperationModes.HEATING}/setpoints/${this.wrapper.getSetpointType(DaikinOperationModes.HEATING)}`,
         );
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET HeatingThresholdTemperature, temperature: ${temperature}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return temperature;
     }
 
     async handleHeatingThresholdTemperatureSet(value: CharacteristicValue) {
@@ -264,9 +227,6 @@ export class ClimateControlHandlers {
 
     async handleTargetHeaterCoolerStateGet(): Promise<CharacteristicValue> {
         const operationMode: DaikinOperationModes = this.wrapper.getCurrentOperationMode();
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET TargetHeaterCoolerState, operationMode: ${operationMode}, last update: ${this.device.getLastUpdated()}`,
-        );
 
         switch (operationMode) {
             case DaikinOperationModes.COOLING:
@@ -311,9 +271,6 @@ export class ClimateControlHandlers {
             `/operationModes/${this.wrapper.getCurrentOperationMode()}/fanDirection/vertical/currentMode`,
             null,
         );
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET VerticalSwingMode, verticalSwingMode: ${verticalSwingMode}, last update: ${this.device.getLastUpdated()}`,
-        );
         return verticalSwingMode === DaikinFanDirectionVerticalModes.SWING;
     }
 
@@ -336,9 +293,6 @@ export class ClimateControlHandlers {
             `/operationModes/${this.wrapper.getCurrentOperationMode()}/fanDirection/horizontal/currentMode`,
             null,
         );
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET HorizontalSwingMode, horizontalSwingMode: ${horizontalSwingMode}, last update: ${this.device.getLastUpdated()}`,
-        );
         return horizontalSwingMode === DaikinFanDirectionHorizontalModes.SWING;
     }
 
@@ -356,12 +310,7 @@ export class ClimateControlHandlers {
     }
 
     async handlePowerfulModeGet() {
-        const powerfulModeOn =
-            this.safeGetValue<DaikinPowerfulModes>('powerfulMode', undefined) === DaikinPowerfulModes.ON;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET PowerfulMode, powerfulModeOn: ${powerfulModeOn}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return powerfulModeOn;
+        return this.safeGetValue<DaikinPowerfulModes>('powerfulMode', undefined) === DaikinPowerfulModes.ON;
     }
 
     async handlePowerfulModeSet(value: CharacteristicValue) {
@@ -372,11 +321,7 @@ export class ClimateControlHandlers {
     }
 
     async handleEconoModeGet() {
-        const econoModeOn = this.safeGetValue<DaikinEconoModes>('econoMode', undefined) === DaikinEconoModes.ON;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET EconoMode, econoModeOn: ${econoModeOn}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return econoModeOn;
+        return this.safeGetValue<DaikinEconoModes>('econoMode', undefined) === DaikinEconoModes.ON;
     }
 
     async handleEconoModeSet(value: CharacteristicValue) {
@@ -387,12 +332,7 @@ export class ClimateControlHandlers {
     }
 
     async handleStreamerModeGet() {
-        const streamerModeOn =
-            this.safeGetValue<DaikinStreamerModes>('streamerMode', undefined) === DaikinStreamerModes.ON;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET StreamerMode, streamerModeOn: ${streamerModeOn}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return streamerModeOn;
+        return this.safeGetValue<DaikinStreamerModes>('streamerMode', undefined) === DaikinStreamerModes.ON;
     }
 
     async handleStreamerModeSet(value: CharacteristicValue) {
@@ -403,12 +343,9 @@ export class ClimateControlHandlers {
     }
 
     async handleOutdoorSilentModeGet() {
-        const outdoorSilentModeOn =
-            this.safeGetValue<DaikinOutdoorSilentModes>('outdoorSilentMode', undefined) === DaikinOutdoorSilentModes.ON;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET OutdoorSilentMode, outdoorSilentModeOn: ${outdoorSilentModeOn}, last update: ${this.device.getLastUpdated()}`,
+        return (
+            this.safeGetValue<DaikinOutdoorSilentModes>('outdoorSilentMode', undefined) === DaikinOutdoorSilentModes.ON
         );
-        return outdoorSilentModeOn;
     }
 
     async handleOutdoorSilentModeSet(value: CharacteristicValue) {
@@ -419,15 +356,12 @@ export class ClimateControlHandlers {
     }
 
     async handleIndoorSilentModeGet() {
-        const indoorSilentModeOn =
+        return (
             this.safeGetValue<DaikinFanSpeedModes>(
                 'fanControl',
                 `/operationModes/${this.wrapper.getCurrentOperationMode()}/fanSpeed/currentMode`,
-            ) === DaikinFanSpeedModes.QUIET;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET IndoorSilentMode, indoorSilentModeOn: ${indoorSilentModeOn}, last update: ${this.device.getLastUpdated()}`,
+            ) === DaikinFanSpeedModes.QUIET
         );
-        return indoorSilentModeOn;
     }
 
     async handleIndoorSilentModeSet(value: CharacteristicValue) {
@@ -442,13 +376,7 @@ export class ClimateControlHandlers {
     }
 
     async handleDryOperationModeGet() {
-        const dryOperationModeOn =
-            this.safeGetValue<DaikinOperationModes>('operationMode', undefined) === DaikinOperationModes.DRY;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET DryOperationMode, dryOperationModeOn: ${dryOperationModeOn}, last update: ${this.device.getLastUpdated()}`,
-        );
-
-        return dryOperationModeOn;
+        return this.safeGetValue<DaikinOperationModes>('operationMode', undefined) === DaikinOperationModes.DRY;
     }
 
     async handleDryOperationModeSet(value: CharacteristicValue) {
@@ -460,12 +388,7 @@ export class ClimateControlHandlers {
     }
 
     async handleFanOnlyOperationModeGet() {
-        const fanOnlyOperationModeOn =
-            this.safeGetValue<DaikinOperationModes>('operationMode', undefined) === DaikinOperationModes.FAN_ONLY;
-        this.platform.daikinLogger.debug(
-            `[${this.name}] GET FanOnlyOperationMode, fanOnlyOperationModeOn: ${fanOnlyOperationModeOn}, last update: ${this.device.getLastUpdated()}`,
-        );
-        return fanOnlyOperationModeOn;
+        return this.safeGetValue<DaikinOperationModes>('operationMode', undefined) === DaikinOperationModes.FAN_ONLY;
     }
 
     async handleFanOnlyOperationModeSet(value: CharacteristicValue) {

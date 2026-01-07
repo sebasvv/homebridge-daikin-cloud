@@ -13,6 +13,7 @@ export class APIService {
     private readonly IGNORE_POLL_WINDOW_MS = 15000; // 15 seconds debounce window
     private _pollingTimeout: NodeJS.Timeout | undefined;
     private _isPollingStopped: boolean = false;
+    private _lastDelay: number = 0;
 
     constructor(
         private readonly configService: ConfigService,
@@ -215,12 +216,15 @@ export class APIService {
         // Use 4x the normal interval or at least 60 minutes during night mode
         const delay = isNightMode ? Math.max(intervalMs * 4, 60 * 60 * 1000) : intervalMs;
 
-        if (isNightMode) {
-            this.daikinLogger.debug(
-                `[API Syncing] Night Mode active (01:00 - 05:00). Reducing polling frequency to every ${delay / 60000} minutes.`,
-            );
-        } else {
-            this.daikinLogger.debug(`[API Syncing] Scheduling next update in ${delay / 60000} minutes`);
+        if (this._lastDelay !== delay) {
+            if (isNightMode) {
+                this.daikinLogger.debug(
+                    `[API Syncing] Night Mode active (01:00 - 05:00). Reducing polling frequency to every ${delay / 60000} minutes.`,
+                );
+            } else {
+                this.daikinLogger.debug(`[API Syncing] Polling every ${delay / 60000} minutes`);
+            }
+            this._lastDelay = delay;
         }
 
         this._pollingTimeout = setTimeout(async () => {
