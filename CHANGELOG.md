@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.1.1](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.1.0...v3.1.1) (2026-01-07)
+
+### Bug Fixes
+
+- correctly handle missing features in API response and lint errors ([5ff1aab](https://github.com/sebasvv/homebridge-daikin-cloud/commit/5ff1aabfcf684311510bc1ffdc3967865ef34aca))
+
+### Refactoring
+
+- optimize logging and remove redundancy in climate control ([da6866a](https://github.com/sebasvv/homebridge-daikin-cloud/commit/da6866a7b02804537df3fd823b9e40d7e7644175))
+
 ## [3.1.0](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.0.9...v3.1.0) (2026-01-05)
 
 ### Features
