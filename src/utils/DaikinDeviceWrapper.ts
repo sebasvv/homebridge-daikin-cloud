@@ -121,6 +121,15 @@ export class DaikinDeviceWrapper {
         return data !== undefined && data !== null;
     }
 
+    public hasIsPowerfulModeActiveFeature(): boolean {
+        const data = this.getData('isPowerfulModeActive', undefined);
+        return data !== undefined && data !== null;
+    }
+
+    public isPowerfulModeActive(): boolean {
+        return this.safeGetValue<boolean>('isPowerfulModeActive', undefined, false);
+    }
+
     public hasEconoModeFeature(): boolean {
         const data = this.getData('econoMode', undefined);
         return data !== undefined && data !== null;

@@ -310,6 +310,9 @@ export class ClimateControlHandlers {
     }
 
     async handlePowerfulModeGet() {
+        if (this.wrapper.hasIsPowerfulModeActiveFeature()) {
+            return this.wrapper.isPowerfulModeActive();
+        }
         return this.safeGetValue<DaikinPowerfulModes>('powerfulMode', undefined) === DaikinPowerfulModes.ON;
     }
 
