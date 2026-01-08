@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### [3.1.2](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.1.1...v3.1.2) (2026-01-08)
+
+### Bug Fixes
+
+- use isPowerfulModeActive for accurate Powerful Mode status ([cd0a30c](https://github.com/sebasvv/homebridge-daikin-cloud/commit/cd0a30c9309ba418a495a625fd50154777cf5988))
+
 ### [3.1.1](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.1.0...v3.1.1) (2026-01-07)
 
 ### Bug Fixes
