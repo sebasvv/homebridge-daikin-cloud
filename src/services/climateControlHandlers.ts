@@ -405,13 +405,10 @@ export class ClimateControlHandlers {
     }
 
     async handleFanOnlyOperationModeSet(value: CharacteristicValue) {
-        if (!value) {
-            return;
-        }
         this.platform.daikinLogger.debug(`[${this.name}] SET FanOnlyOperationMode to: ${value}`);
-        const daikinOperationMode = DaikinOperationModes.FAN_ONLY;
+        const daikinOperationMode = (value as boolean) ? DaikinOperationModes.FAN_ONLY : DaikinOperationModes.AUTO;
         await this.safeSetData('operationMode', undefined, daikinOperationMode);
-        await this.safeSetData('onOffMode', undefined, DaikinOnOffModes.ON);
+        await this.safeSetData('onOffMode', undefined, (value as boolean) ? DaikinOnOffModes.ON : DaikinOnOffModes.OFF);
         this.platform.apiService.notifyUserInteraction();
     }
 

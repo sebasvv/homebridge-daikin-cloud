@@ -22,6 +22,7 @@ jest.mock('../../src/utils/DaikinDeviceWrapper');
 const mockLogger = {
     debug: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
 } as unknown as DaikinLogger;
 
 const mockApiService = {
