@@ -156,7 +156,7 @@ test.each<Array<string | string | any | DeviceState>>([
         },
     ],
 ])('Create DaikinCloudThermostatAccessory with %s device', async (name, climateControlEmbeddedId, deviceJson, state) => {
-    const device = new DaikinCloudDevice(deviceJson, undefined as unknown as OnectaClient);
+    const device = new DaikinCloudDevice(JSON.parse(JSON.stringify(deviceJson)), undefined as unknown as OnectaClient);
 
     jest.spyOn(DaikinCloudController.prototype, 'getCloudDevices').mockImplementation(async () => {
         return [device];
@@ -229,7 +229,7 @@ test.each<Array<string | string | any | DeviceState>>([
 });
 
 test('DaikinCloudAirConditioningAccessory Getters', async () => {
-    const device = new DaikinCloudDevice(althermaHeatPump, undefined as unknown as OnectaClient);
+    const device = new DaikinCloudDevice(JSON.parse(JSON.stringify(althermaHeatPump)), undefined as unknown as OnectaClient);
 
     jest.spyOn(DaikinCloudController.prototype, 'getCloudDevices').mockImplementation(async () => {
         return [device];
@@ -251,7 +251,7 @@ test('DaikinCloudAirConditioningAccessory Getters', async () => {
 });
 
 test('DaikinCloudAirConditioningAccessory Setters', async () => {
-    const device = new DaikinCloudDevice(althermaHeatPump, undefined as unknown as OnectaClient);
+    const device = new DaikinCloudDevice(JSON.parse(JSON.stringify(althermaHeatPump)), undefined as unknown as OnectaClient);
 
     jest.spyOn(DaikinCloudController.prototype, 'getCloudDevices').mockImplementation(async () => {
         return [device];
