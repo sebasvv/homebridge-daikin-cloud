@@ -180,6 +180,15 @@ export class DaikinDeviceWrapper {
         return (data1 !== undefined && data1 !== null) || (data2 !== undefined && data2 !== null);
     }
 
+    public hasFloorHeatingFeature(): boolean {
+        // Floor heating is typically identified by the support for leaving water temperature control
+        const controlMode = this.getData('controlMode', undefined);
+        if (!controlMode || !Array.isArray(controlMode.values)) {
+            return false;
+        }
+        return controlMode.values.includes(DaikinControlModes.LEAVING_WATER_TEMPERATURE);
+    }
+
     public isCoolingSupported(): boolean {
         return true; // Simplified
     }

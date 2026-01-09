@@ -24,6 +24,19 @@ export class ClimateControlHandlers {
     ) {}
 
     private async safeSetData(key: string, path: string | undefined, value: unknown) {
+        // Optimistic update
+        try {
+            const dataPoint = this.device.getData(this.managementPointId, key, path);
+            if (dataPoint) {
+                this.platform.daikinLogger.debug(
+                    `[${this.name}] Optimistic update for ${key}${path ? ' (' + path + ')' : ''} to ${value}`,
+                );
+                dataPoint.value = value;
+            }
+        } catch (e) {
+            this.platform.daikinLogger.warn(`[${this.name}] Failed to perform optimistic update: ${e}`);
+        }
+
         try {
             await this.platform.apiService.setDeviceData(this.device, this.managementPointId, key, path, value);
         } catch (e) {
@@ -310,9 +323,6 @@ export class ClimateControlHandlers {
     }
 
     async handlePowerfulModeGet() {
-        if (this.wrapper.hasIsPowerfulModeActiveFeature()) {
-            return this.wrapper.isPowerfulModeActive();
-        }
         return this.safeGetValue<DaikinPowerfulModes>('powerfulMode', undefined) === DaikinPowerfulModes.ON;
     }
 
@@ -395,10 +405,21 @@ export class ClimateControlHandlers {
     }
 
     async handleFanOnlyOperationModeSet(value: CharacteristicValue) {
+        if (!value) {
+            return;
+        }
         this.platform.daikinLogger.debug(`[${this.name}] SET FanOnlyOperationMode to: ${value}`);
-        const daikinOperationMode = (value as boolean) ? DaikinOperationModes.FAN_ONLY : DaikinOperationModes.AUTO;
+        const daikinOperationMode = DaikinOperationModes.FAN_ONLY;
         await this.safeSetData('operationMode', undefined, daikinOperationMode);
-        await this.safeSetData('onOffMode', undefined, (value as boolean) ? DaikinOnOffModes.ON : DaikinOnOffModes.OFF);
+        await this.safeSetData('onOffMode', undefined, DaikinOnOffModes.ON);
         this.platform.apiService.notifyUserInteraction();
+    }
+
+    async handleFloorHeatingGet() {
+        return this.handleActiveStateGet();
+    }
+
+    async handleFloorHeatingSet(value: CharacteristicValue) {
+        await this.handleActiveStateSet(value);
     }
 }

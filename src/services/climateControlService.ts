@@ -13,6 +13,7 @@ export class ClimateControlService extends BaseService {
         INDOOR_SILENT_MODE: 'Indoor silent mode',
         DRY_OPERATION_MODE: 'Dry operation mode',
         FAN_ONLY_OPERATION_MODE: 'Fan only operation mode',
+        FLOOR_HEATING_MODE: 'Floor heating',
         VERTICAL_SWING_MODE: 'Vertical swing',
         HORIZONTAL_SWING_MODE: 'Horizontal swing',
     };
@@ -26,6 +27,7 @@ export class ClimateControlService extends BaseService {
     private readonly switchServiceIndoorSilentMode?: Service;
     private readonly switchServiceDryOperationMode?: Service;
     private readonly switchServiceFanOnlyOperationMode?: Service;
+    private readonly switchServiceFloorHeating?: Service;
     private readonly switchServiceVerticalSwingMode?: Service;
     private readonly switchServiceHorizontalSwingMode?: Service;
 
@@ -254,6 +256,14 @@ export class ClimateControlService extends BaseService {
             this.wrapper.hasFanOnlyOperationModeFeature(),
             this.handlers.handleFanOnlyOperationModeGet.bind(this.handlers),
             this.handlers.handleFanOnlyOperationModeSet.bind(this.handlers),
+        );
+
+        this.switchServiceFloorHeating = this.setupSwitchService(
+            this.extraServices.FLOOR_HEATING_MODE,
+            'floor_heating_mode',
+            this.wrapper.hasFloorHeatingFeature(),
+            this.handlers.handleFloorHeatingGet.bind(this.handlers),
+            this.handlers.handleFloorHeatingSet.bind(this.handlers),
         );
 
         this.switchServiceVerticalSwingMode = this.setupSwitchService(
@@ -521,6 +531,13 @@ export class ClimateControlService extends BaseService {
             this.switchServiceFanOnlyOperationMode.updateCharacteristic(
                 this.platform.Characteristic.On,
                 await this.handlers.handleFanOnlyOperationModeGet(),
+            );
+        }
+
+        if (this.switchServiceFloorHeating) {
+            this.switchServiceFloorHeating.updateCharacteristic(
+                this.platform.Characteristic.On,
+                await this.handlers.handleFloorHeatingGet(),
             );
         }
     }
