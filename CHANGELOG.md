@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.1.2...v3.2.0) (2026-01-09)
+
+### Features
+
+- implement Floor Heating switch and fix state persistence ([3c96b91](https://github.com/sebasvv/homebridge-daikin-cloud/commit/3c96b91e126f3000bd25173cfea59f33b1be8147))
+
+### Bug Fixes
+
+- logic error in FanOnly mode setting and missing test mocks ([0c77440](https://github.com/sebasvv/homebridge-daikin-cloud/commit/0c774402aab220de2c21b7f27581afb0eb49f312))
+
 ### [3.1.2](https://github.com/sebasvv/homebridge-daikin-cloud/compare/v3.1.1...v3.1.2) (2026-01-08)
 
 ### Bug Fixes
